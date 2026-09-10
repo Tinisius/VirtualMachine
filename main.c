@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "utils.c"
-#include "operators.h"
+#include "headers/operators.h"
 
 void readHeader(char route[], uint16_t *code_size, int8_t *res)
 {
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 
     operatorASM operators[N_OP] = OPERATORS;
 
-    printf("a %s\n",operators[0].name);
+    printf("%s\n",operators[0].name);   //muestra el operador de indice 0
 
     uploadMem(argv, machine.memory);
 

@@ -1,4 +1,4 @@
-#include "operators.c"
+#include "../operators.c"
 #define OPERATORS {{"MOV", 0x10, MOV},{"ADD", 0x11, ADD}, {"MUL", 0x13, MUL}}
 
 typedef struct
