@@ -9,5 +9,5 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 #y ejecuta el programa compilado
-& .\versions\MV.exe hola.vmx
+& .\versions\MV.exe .\vmt\program.vmx
 exit $LASTEXITCODE
