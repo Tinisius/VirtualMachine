@@ -1,24 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h> //libreria para estandarizar el tamaño en bytes de los tipos
 #include "utils.c"
-
 #include "constants.h"
-
-typedef struct
-{
-    char *name;
-    int32_t value;
-} reg;
-
-typedef struct
-{
-    char *name;
-    int16_t code;
-    void (*operation)(int32_t, int32_t);
-} operatorASM;
-
+#define PRINT_VAR_NAME(x) printf("%s\n", #x)
 void readHeader(char route[], uint16_t *code_size, int8_t *res)
 {
     uint8_t line[N_HEADER];
@@ -43,12 +28,8 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res)
     fclose(arch);
 }
 
-void uploadMem(char *argv[]){
+void uploadMem(char *argv[], int8_t memory[]){
     FILE *arch = fopen(*(argv + 1), "rb");  //abre el archivo indicado por parametro
-    int8_t memory[N_MEM];
-    // reg registers[N_REG];
-    // int32_t segments[N_SEG];
-    // operatorASM operations[N_OP];
 
     uint16_t code_size; //guardamos el tamaño del code en una var de 2bytes
     int8_t res = 0;     //guarda si es posible ejecutar el programa .vmx
@@ -72,8 +53,14 @@ void uploadMem(char *argv[]){
 
 int main(int argc, char *argv[])
 {
+    // operatorASM operations[N_OP];
+    type_machine machine;
 
-    uploadMem(argv);
+    operatorASM operators[N_OP] = OPERATORS;
+
+    printf("AAAAAAAAAAAAAAAAAAAAAAAA %s\n",operators[0].name);
+
+    uploadMem(argv, machine.memory);
 
     return 0;
 }
