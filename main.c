@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "utils.c"
-#include "constants.h"
-#define PRINT_VAR_NAME(x) printf("%s\n", #x)
+#include "operators.h"
+
 void readHeader(char route[], uint16_t *code_size, int8_t *res)
 {
     uint8_t line[N_HEADER];
@@ -53,12 +53,11 @@ void uploadMem(char *argv[], int8_t memory[]){
 
 int main(int argc, char *argv[])
 {
-    // operatorASM operations[N_OP];
     type_machine machine;
 
     operatorASM operators[N_OP] = OPERATORS;
 
-    printf("AAAAAAAAAAAAAAAAAAAAAAAA %s\n",operators[0].name);
+    printf("a %s\n",operators[0].name);
 
     uploadMem(argv, machine.memory);
 
