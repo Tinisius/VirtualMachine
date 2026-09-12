@@ -4,6 +4,73 @@
 #include "utils.c"
 #include "headers/operators.h"
 
+void ejecute(uint8_t mem[], reg regs[], uint32_t tbs[], uint16_t cs_size){
+    
+    uint16_t offset_ip = regs[IP].value & 0xFFFF;
+    uint16_t segmento = (regs[IP].value >> 16) & 0xFFFF;
+
+    while ( segmento == 0 && offset_ip < cs_size){
+       printf("%04X\n", offset_ip);
+        uint8_t instruction = mem[offset_ip];
+        uint32_t byteSized = 1; //ya lei un byte
+        uint8_t opB,opA,opC;
+        opB = (instruction >> 6) & 0x03;
+        opA = (instruction >> 4) & 0x03;
+        opC = instruction & 0x1F;
+        uint8_t byte4 = opC >> 4;
+        printf("%0X_\n",byte4);
+       if ( byte4 == 0x01){ // si us un operando de 2 bytes 
+            switch (opB)
+            {
+            case 1:
+
+                byteSized++;
+                break;
+            case 2 :
+
+                byteSized+=2;
+                break;
+            case 3 :
+                
+            
+                byteSized+=3;
+                break;
+            }
+
+            switch (opA)
+            {
+            case 1:
+                byteSized++;
+                break;
+            
+            case 3:
+                byteSized+=3;
+                break;
+            }
+       }
+       else{
+            
+
+
+       }
+
+
+
+        regs[0].value += byteSized;
+
+        offset_ip = regs[0].value & 0xFFFF;
+        segmento = (regs[0].value >> 16) & 0xFFFF;
+    }
+    printf("%04X___\n", offset_ip);
+    
+}
+
+void initRegs( reg regs[]){
+    regs[IP].value = 0;
+    regs[CS].value = 0;
+    regs[DS].value = 0x00010000;
+
+}
 
 void createTableSeg (uint32_t TBS[], uint16_t cs_size){
     TBS[0] = 0;
@@ -19,11 +86,10 @@ void createTableSeg (uint32_t TBS[], uint16_t cs_size){
         TBS[i] = TBS[i] | 0xFFFF;
     }
    
-    /*for(int i=0;i<8;i++)
+    /*for(int i=0;i<8;i++)  
         printf("0x%08X\n", TBS[i]);*/
+    //muestra la tabla de descriptores de segmentos
 
-    
-    
 }
 
 
@@ -86,6 +152,8 @@ int main(int argc, char *argv[])
     uint16_t  cs_size;
     uploadMem(argv, machine.memory,&cs_size);
     createTableSeg(machine.segments,cs_size);  //se crea la tabla de segmentos
+    initRegs(machine.registers);
+    ejecute(machine.memory, machine.registers, machine.segments, cs_size);
 
 
     return 0;
