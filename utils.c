@@ -1,4 +1,4 @@
-int lsh(int number, int shift){
-    //shifting func
+int lsh(int number, int shift) {
+    // shifting func
     return number << shift;
 }
