@@ -40,15 +40,15 @@ void initRegs(reg regs[]) {
 
 void initTableSeg(int32_t TBS[]) {
     for (int i = 0; i < N_SEG; i++)
-        TBS[i] = 0xFFFF;
+        TBS[i] = 0xFFFFFFFF;
 }
 
 void addSegment(int32_t TBS[], uint8_t pos, uint16_t size) {
     uint16_t last_size = 0;
     if (pos >= 0 && pos <= 7) {
         if (pos != 0)
-            last_size = TBS[pos - 1] & 0x00FF;
-        // FALTA: verificar que entre en memoria
+            last_size = TBS[pos - 1] & 0x0000FFFF;
+        // verificar que entre en memoria?
         TBS[pos] = (int32_t)(last_size << 16) | size;
     } else
         exit(-1);
