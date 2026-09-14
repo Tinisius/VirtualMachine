@@ -3,6 +3,19 @@
 #include <string.h>
 #include "utils.c"
 #include "headers/operators.h"
+operatorASM vectorOperandos[] = OPERATORS;
+
+void ejecutar(type_machine *m){
+    int32_t opA = m->registers[OP1].value;
+    int32_t opB = m->registers[OP2].value;
+    int32_t opC = m->registers[OPC].value;
+
+    vectorOperandos[opC].operation(opA,opB,*m);
+    
+
+
+
+}
 
 uint32_t obtenerdireccionFisica(type_machine m,int32_t dirlogica){
     uint16_t indiceseg = highest(dirlogica);
@@ -151,13 +164,13 @@ int main(int argc, char *argv[])
         machine.registers[OP2].value = ((int32_t)tipeB << 24) | (valorB & 0x00FFFFFF);
         machine.registers[OP1].value = ((int32_t)tipeA << 24) | (valorA & 0x00FFFFFF);
         machine.registers[IP].value+=1+tipeA+tipeB;
+        ejecutar(&machine);
 
-        printf("%0x %0x_opa %0x_opb\n",machine.registers[IP].value, machine.registers[OP1].value,machine.registers[OP2].value );
-
-
-
+        //printf("%0x %0x_opa %0x_opb\n",machine.registers[IP].value, machine.registers[OP1].value,machine.registers[OP2].value );
 
     }
+
+    //printf("%0X %0X_opa %0X_opb\n",machine.registers[IP].value, machine.registers[OP1].value,machine.registers[OP2].value );
 
 
     return 0;

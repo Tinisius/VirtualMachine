@@ -30,7 +30,7 @@ int32_t leerValor(int8_t mem[], uint8_t cantBytesOperando,uint32_t *indiceFisico
     ;
     for (int i = 0;  i<cantBytesOperando; i++){
         v<<=8;
-        v |= (uint8_t)mem[++(*indiceFisico)]; //casteo a sin signo para evitar arrastrar basura negativa
+        v |= (uint8_t)mem[++(*indiceFisico)]; //casteo a sin signo para no arrastrar basura si era negativo
 
     }
     (*indiceFisico)++;
