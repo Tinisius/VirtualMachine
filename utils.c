@@ -26,8 +26,7 @@ int32_t leerValor(int8_t mem[], uint8_t cantBytesOperando,uint32_t *indiceFisico
     v =  mem[*indiceFisico];
     v <<= 24;
     v >>= 24; 
-    cantBytesOperando--
-    ;
+    cantBytesOperando--;
     for (int i = 0;  i<cantBytesOperando; i++){
         v<<=8;
         v |= (uint8_t)mem[++(*indiceFisico)]; //casteo a sin signo para no arrastrar basura si era negativo
