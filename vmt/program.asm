@@ -1,1 +1,2 @@
 MOV EDX, DS
+MOV EAX, EFX
