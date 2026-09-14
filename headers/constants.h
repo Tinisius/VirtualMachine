@@ -7,7 +7,7 @@
 #define N_MEM 16384
 #define N_SEG 8
 #define N_REG 32
-#define N_OP 32
+#define N_OP 28
 
 #define IP 0
 #define OPC 1
@@ -30,17 +30,14 @@
 #define CS 26
 #define DS 27
 
-typedef struct
-{
+typedef struct {
     char *name;
     int32_t value;
 } reg;
 
-
-typedef struct
-{
+typedef struct {
     int8_t memory[N_MEM];
     reg registers[N_REG];
     int32_t segments[N_SEG];
-    
-}type_machine;
+
+} type_machine;
