@@ -4,65 +4,37 @@
 #include "utils.c"
 #include "headers/operators.h"
 
-void ejecute(uint8_t mem[], reg regs[], uint32_t tbs[], uint16_t cs_size){
-    
-    uint16_t offset_ip = regs[IP].value & 0xFFFF;
-    uint16_t segmento = (regs[IP].value >> 16) & 0xFFFF;
-
-    while ( segmento == 0 && offset_ip < cs_size){
-       printf("%04X\n", offset_ip);
-        uint8_t instruction = mem[offset_ip];
-        uint32_t byteSized = 1; //ya lei un byte
-        uint8_t opB,opA,opC;
-        opB = (instruction >> 6) & 0x03;
-        opA = (instruction >> 4) & 0x03;
-        opC = instruction & 0x1F;
-        uint8_t byte4 = opC >> 4;
-        printf("%0X_\n",byte4);
-       if ( byte4 == 0x01){ // si us un operando de 2 bytes 
-            switch (opB)
-            {
-            case 1:
-
-                byteSized++;
-                break;
-            case 2 :
-
-                byteSized+=2;
-                break;
-            case 3 :
-                
-            
-                byteSized+=3;
-                break;
-            }
-
-            switch (opA)
-            {
-            case 1:
-                byteSized++;
-                break;
-            
-            case 3:
-                byteSized+=3;
-                break;
-            }
-       }
-       else{
-            
-
-
-       }
-
-
-
-        regs[0].value += byteSized;
-
-        offset_ip = regs[0].value & 0xFFFF;
-        segmento = (regs[0].value >> 16) & 0xFFFF;
+uint32_t obtenerdireccionFisica(type_machine m,int32_t dirlogica){
+    uint16_t indiceseg = highest(dirlogica);
+    if (indiceseg < N_SEG){
+        uint16_t offset = lowest(dirlogica);
+        uint16_t base = highest(m.segments[indiceseg]);
+        return  base + offset;
     }
-    printf("%04X___\n", offset_ip);
-    
+    else{
+        printf("te pasaste de segmentos\n");
+        exit(-1);
+
+    }
+
+
+}
+
+
+int corresponds( type_machine *m){
+
+    if (m->registers[IP].value < 0)
+        return 0;
+    else{
+        uint32_t table = m->segments[highest(m->registers[CS].value)];
+        uint16_t base= highest(table);
+        uint16_t tam = lowest(table);
+        int16_t ipDireccionFisica = obtenerdireccionFisica(*m,m->registers[IP].value);
+        ipDireccionFisica-=base;
+        printf("%0x--\n",ipDireccionFisica >=0 && ipDireccionFisica <tam);
+        return ipDireccionFisica >=0 && ipDireccionFisica <tam;
+    }
+
 }
 
 void initRegs( reg regs[]){
@@ -153,7 +125,39 @@ int main(int argc, char *argv[])
     uploadMem(argv, machine.memory,&cs_size);
     createTableSeg(machine.segments,cs_size);  //se crea la tabla de segmentos
     initRegs(machine.registers);
-    ejecute(machine.memory, machine.registers, machine.segments, cs_size);
+
+    while( corresponds(&machine) ){ //analiza si corresponde leer/seguir leyendo las instrucciones
+        
+        uint32_t indiceFisico = obtenerdireccionFisica(machine,machine.registers[IP].value);
+        uint8_t instruccion = machine.memory[indiceFisico];
+        
+        uint8_t tipeB = (instruccion >> 6) & 0x03;
+        uint8_t tipeA = (instruccion >> 4) & 0x03;
+        uint8_t opC = instruccion & 0x1F; 
+
+        machine.registers[OPC].value = opC;
+
+        //como ya lei un byte el indice debe incrementarse para leer el operando B
+        indiceFisico++;
+        int32_t valorB = leerValor(machine.memory,tipeB,&indiceFisico);
+        int32_t valorA = leerValor(machine.memory,tipeA,&indiceFisico);
+
+        if (tipeA == 0)
+        {
+            tipeA = tipeB;
+            valorA = valorB;
+            tipeB = valorB = 0;
+        }
+        machine.registers[OP2].value = ((int32_t)tipeB << 24) | (valorB & 0x00FFFFFF);
+        machine.registers[OP1].value = ((int32_t)tipeA << 24) | (valorA & 0x00FFFFFF);
+        machine.registers[IP].value+=1+tipeA+tipeB;
+
+        printf("%0x %0x_opa %0x_opb\n",machine.registers[IP].value, machine.registers[OP1].value,machine.registers[OP2].value );
+
+
+
+
+    }
 
 
     return 0;
