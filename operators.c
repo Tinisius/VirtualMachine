@@ -87,6 +87,9 @@ void XOR(int32_t OPA, int32_t OPB, type_machine m) {
 
 void SWAP(int32_t OPA, int32_t OPB, type_machine m) {
     //
+    XOR(OPA, OPB, m);
+    XOR(OPB, OPA, m);
+    XOR(OPA, OPB, m);
 }
 
 void SHL(int32_t OPA, int32_t OPB, type_machine m) {
