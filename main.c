@@ -8,15 +8,37 @@
 operatorASM vectorOperandos[] = OPERATORS;
 
 void ejecutar(type_machine *m){
+
     int32_t opA = m->registers[OP1].value;
     int32_t opB = m->registers[OP2].value;
     int32_t opC = m->registers[OPC].value;
 
-    vectorOperandos[opC].operation(opA,opB,*m);
+    //inicio de busqueda binaria
+    int cantidad_instrucciones, izq, der, medio, estaba;
+    cantidad_instrucciones = sizeof(vectorOperandos) / sizeof(vectorOperandos[0]);
+    izq = 0;
+    der = cantidad_instrucciones - 1;
+    estaba = 0;
+
+    while (izq <= der && estaba == 0) 
+    {   medio = izq +(der - izq) / 2;
+        if (vectorOperandos[medio].code == opC){             // tienen q recibir el puntero a m
+            vectorOperandos[medio].operation( opA, opB, *m); // paso m porq se va necesitar actualizar
+             estaba = 1;                                   //el cc  
+        }
+        else
+            if (vectorOperandos[medio].code < opC)
+                izq = medio + 1;
+            else
+                der = medio - 1;
+    }
     
+    if (estaba == 0){
+        printf("operacion leida no existente ");
+        exit(-1);
 
-
-
+    }
+    
 }
 
 uint32_t obtenerdireccionFisica(type_machine m, int32_t dirlogica) {
@@ -200,10 +222,6 @@ int main(int argc, char *argv[]) {
             valorA = valorB;
             tipeB = valorB = 0;
         }
-        machine.registers[OP2].value = ((int32_t)tipeB << 24) | (valorB & 0x00FFFFFF);
-        machine.registers[OP1].value = ((int32_t)tipeA << 24) | (valorA & 0x00FFFFFF);
-        machine.registers[IP].value+=1+tipeA+tipeB;
-        ejecutar(&machine);
 
         //printf("%0x %0x_opa %0x_opb\n",machine.registers[IP].value, machine.registers[OP1].value,machine.registers[OP2].value );
         machine.registers[OP2].value =
@@ -211,6 +229,8 @@ int main(int argc, char *argv[]) {
         machine.registers[OP1].value =
             ((int32_t)tipeA << 24) | (valorA & 0x00FFFFFF);
         machine.registers[IP].value += 1 + tipeA + tipeB;
+
+        ejecutar(&machine);
 
         printf("%0x %0x_opa %0x_opb\n", machine.registers[IP].value,
                machine.registers[OP1].value, machine.registers[OP2].value);
