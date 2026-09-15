@@ -1,8 +1,29 @@
 #include "headers/constants.h"
+#include "utils.h"
 #include <stdint.h>
 
 void SYS(int32_t OPA, int32_t OPB, type_machine m) {
     //
+    int32_t v_EDX = m.registers[13].value; // posicion de memoria
+    int32_t v_ECX = m.registers[12].value; // cant - tam
+    int32_t v_EAX = m.registers[10].value; // modo de lectura
+
+    if (OPA == 1) { // READ / LECTURA (escribe en memoria)
+        int32_t value;
+        int16_t size = highest(v_ECX);
+        int16_t numsAmount = lowest(v_ECX);
+        for (int i = 0; i < numsAmount; i++) { // realiza N lecturas
+            printf("[XXXX]: ");
+            scanf("%d\n", &value);
+            value = value & ((1ULL << (size * 8)) - 1); // trunca value en func del size,
+                                                        // (1 << 8) - 1 es 0xFF
+            if (memWrite(value, size, v_EDX, m))        // escribe en memoria y valida
+                return 1;
+        }
+    } else if (OPA == 2) { // WRITE / ESCRITURA (lee de memoria)
+        /* code */
+    } else // ERROR
+        return 0;
 }
 
 void JMP(int32_t OPA, int32_t OPB, type_machine m) {

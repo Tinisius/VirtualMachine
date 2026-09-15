@@ -1,20 +1,8 @@
 #include "headers/operators.h"
-#include "utils.c"
+#include "utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-uint32_t obtainPhysicDirection(type_machine m, int32_t logicDir) {
-    uint16_t segmIndex = highest(logicDir);
-    if (segmIndex < N_SEG) {
-        uint16_t offset = lowest(logicDir);
-        uint16_t base = highest(m.segments[segmIndex]);
-        return base + offset;
-    } else {
-        printf("te pasaste de segmentos\n");
-        exit(-1);
-    }
-}
 
 int corresponds(type_machine *m) {
     if (m->registers[IP].value < 0)
@@ -83,8 +71,7 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res) {
         *code_size = ((uint16_t)line[6] << 8) | line[7];
         // uso memcmp porque line no es una cadena terminada en \0. comparo
         // byte a byte contra ID
-        *res = (memcmp(line, ID, 5) == 0) && (line[5] == VERSION) &&
-               ((*code_size) <= N_MEM - 1);
+        *res = (memcmp(line, ID, 5) == 0) && (line[5] == VERSION) && ((*code_size) <= N_MEM - 1);
 
         // TEST: mostrar lectura
         printf("IDENTIFICADOR: \"%.5s\"\n", line);
@@ -96,8 +83,7 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res) {
 }
 
 void uploadMem(char *argv[], int8_t memory[], uint16_t *cs_size, int32_t cs) {
-    FILE *arch =
-        fopen(*(argv + 1), "rb"); // abre el archivo indicado por parametro
+    FILE *arch = fopen(*(argv + 1), "rb"); // abre el archivo indicado por parametro
 
     uint16_t code_size; // guardamos el sizeaño del code en una var de 2bytes
     int8_t res = 0;     // guarda si es posible ejecutar el programa .vmx
@@ -157,8 +143,7 @@ int main(int argc, char *argv[]) {
     while (corresponds(&machine)) { // analiza si corresponde leer/seguir
                                     // leyendo las instruciones
 
-        uint32_t physicIndex =
-            obtainPhysicDirection(machine, machine.registers[IP].value);
+        uint32_t physicIndex = obtainPhysicDirection(machine, machine.registers[IP].value);
         uint8_t instruction = machine.memory[physicIndex];
 
         uint8_t tipeB = (instruction >> 6) & 0x03;
@@ -183,14 +168,12 @@ int main(int argc, char *argv[]) {
             valueA = valueB;
             tipeB = valueB = 0;
         }
-        machine.registers[OP2].value =
-            ((int32_t)tipeB << 24) | (valueB & 0x00FFFFFF);
-        machine.registers[OP1].value =
-            ((int32_t)tipeA << 24) | (valueA & 0x00FFFFFF);
+        machine.registers[OP2].value = ((int32_t)tipeB << 24) | (valueB & 0x00FFFFFF);
+        machine.registers[OP1].value = ((int32_t)tipeA << 24) | (valueA & 0x00FFFFFF);
         machine.registers[IP].value += 1 + tipeA + tipeB;
 
-        printf("%0x %0x_opa %0x_opb\n", machine.registers[IP].value,
-               machine.registers[OP1].value, machine.registers[OP2].value);
+        printf("%0x %0x_opa %0x_opb\n", machine.registers[IP].value, machine.registers[OP1].value,
+               machine.registers[OP2].value);
     }
 
     return 0;

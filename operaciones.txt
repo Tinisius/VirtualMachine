@@ -1,0 +1,8 @@
+SYS
+listo SWAP
+SHL
+SHR
+SAR
+LDL
+LDH
+RND
