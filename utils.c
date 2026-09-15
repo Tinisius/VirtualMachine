@@ -1,8 +1,6 @@
-// #include "headers/constants.h" genera conflictos con typemachine
 #include "utils.h"
-#include "constants.h"
+#include "headers/constants.h"
 #include <stdint.h>
-
 
 int lsh(int number, int shift) {
     // shifting func
