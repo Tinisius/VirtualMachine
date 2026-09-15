@@ -7,52 +7,6 @@
 #include "headers/operators.h"
 operatorASM vectorOperandos[] = OPERATORS;
 
-void ejecutar(type_machine *m){
-
-    int32_t opA = m->registers[OP1].value;
-    int32_t opB = m->registers[OP2].value;
-    int32_t opC = m->registers[OPC].value;
-
-    //inicio de busqueda binaria
-    int cantidad_instrucciones, izq, der, medio, estaba;
-    cantidad_instrucciones = sizeof(vectorOperandos) / sizeof(vectorOperandos[0]);
-    izq = 0;
-    der = cantidad_instrucciones - 1;
-    estaba = 0;
-
-    while (izq <= der && estaba == 0) 
-    {   medio = izq +(der - izq) / 2;
-        if (vectorOperandos[medio].code == opC){             // tienen q recibir el puntero a m
-            vectorOperandos[medio].operation( opA, opB, *m); // paso m porq se va necesitar actualizar
-             estaba = 1;                                   //el cc  
-        }
-        else
-            if (vectorOperandos[medio].code < opC)
-                izq = medio + 1;
-            else
-                der = medio - 1;
-    }
-    
-    if (estaba == 0){
-        printf("operacion leida no existente ");
-        exit(-1);
-
-    }
-    
-}
-
-uint32_t obtenerdireccionFisica(type_machine m, int32_t dirlogica) {
-    uint16_t indiceseg = highest(dirlogica);
-    if (indiceseg < N_SEG) {
-        uint16_t offset = lowest(dirlogica);
-        uint16_t base = highest(m.segments[indiceseg]);
-        return base + offset;
-    } else {
-        printf("te pasaste de segmentos\n");
-        exit(-1);
-    }
-}
-
 int corresponds(type_machine *m) {
 
     if (m->registers[IP].value < 0)
@@ -230,7 +184,7 @@ int main(int argc, char *argv[]) {
             ((int32_t)tipeA << 24) | (valorA & 0x00FFFFFF);
         machine.registers[IP].value += 1 + tipeA + tipeB;
 
-        ejecutar(&machine);
+        
 
         printf("%0x %0x_opa %0x_opb\n", machine.registers[IP].value,
                machine.registers[OP1].value, machine.registers[OP2].value);
