@@ -17,7 +17,6 @@ uint32_t obtenerdireccionFisica(type_machine m, int32_t dirlogica) {
 }
 
 int corresponds(type_machine *m) {
-
     if (m->registers[IP].value < 0)
         return 0;
     else {
