@@ -7,19 +7,29 @@
 #include "headers/operators.h"
 operatorASM vectorOperandos[] = OPERATORS;
 
-int corresponds(type_machine *m) {
+uint32_t obtainPhysicDirection(type_machine m, int32_t logicDir) {
+    uint16_t segmIndex = highest(logicDir);
+    if (segmIndex < N_SEG) {
+        uint16_t offset = lowest(logicDir);
+        uint16_t base = highest(m.segments[segmIndex]);
+        return base + offset;
+    } else {
+        printf("te pasaste de segmentos\n");
+        exit(-1);
+    }
+}
 
+int corresponds(type_machine *m) {
     if (m->registers[IP].value < 0)
         return 0;
     else {
         uint32_t table = m->segments[highest(m->registers[CS].value)];
         uint16_t base = highest(table);
-        uint16_t tam = lowest(table);
-        int16_t ipDireccionFisica =
-            obtenerdireccionFisica(*m, m->registers[IP].value);
-        ipDireccionFisica -= base;
-        printf("%0x--\n", ipDireccionFisica >= 0 && ipDireccionFisica < tam);
-        return ipDireccionFisica >= 0 && ipDireccionFisica < tam;
+        uint16_t size = lowest(table);
+        int16_t ipPhysicDir = obtainPhysicDirection(*m, m->registers[IP].value);
+        ipPhysicDir -= base;
+        printf("%0x--\n", ipPhysicDir >= 0 && ipPhysicDir < size);
+        return ipPhysicDir >= 0 && ipPhysicDir < size;
     }
 }
 
@@ -72,7 +82,7 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res) {
     if (fread(line, 1, N_HEADER, arch) == N_HEADER) {
         // Bytes 0-4: identificador "VMX26"
         // Byte 5: version
-        // Bytes 6-7: tamano codigo
+        // Bytes 6-7: sizeano codigo
         *code_size = ((uint16_t)line[6] << 8) | line[7];
         // uso memcmp porque line no es una cadena terminada en \0. comparo
         // byte a byte contra ID
@@ -82,7 +92,7 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res) {
         // TEST: mostrar lectura
         printf("IDENTIFICADOR: \"%.5s\"\n", line);
         printf("VERSION: %d\n", line[5]);
-        printf("TAMANO EN BYTES: %u\n", *code_size);
+        printf("sizeANO EN BYTES: %u\n", *code_size);
     } else
         *res = 0;
     fclose(arch);
@@ -92,7 +102,7 @@ void uploadMem(char *argv[], int8_t memory[], uint16_t *cs_size, int32_t cs) {
     FILE *arch =
         fopen(*(argv + 1), "rb"); // abre el archivo indicado por parametro
 
-    uint16_t code_size; // guardamos el tamaño del code en una var de 2bytes
+    uint16_t code_size; // guardamos el sizeaño del code en una var de 2bytes
     int8_t res = 0;     // guarda si es posible ejecutar el programa .vmx
 
     readHeader(*(argv + 1), &code_size, &res);
@@ -148,15 +158,15 @@ int main(int argc, char *argv[]) {
     addSegment(machine.segments, 1, N_MEM - cs_size); // data segment
 
     while (corresponds(&machine)) { // analiza si corresponde leer/seguir
-                                    // leyendo las instrucciones
+                                    // leyendo las instruciones
 
-        uint32_t indiceFisico =
-            obtenerdireccionFisica(machine, machine.registers[IP].value);
-        uint8_t instruccion = machine.memory[indiceFisico];
+        uint32_t physicIndex =
+            obtainPhysicDirection(machine, machine.registers[IP].value);
+        uint8_t instruction = machine.memory[physicIndex];
 
-        uint8_t tipeB = (instruccion >> 6) & 0x03;
-        uint8_t tipeA = (instruccion >> 4) & 0x03;
-        uint8_t opC = instruccion & 0x1F;
+        uint8_t tipeB = (instruction >> 6) & 0x03;
+        uint8_t tipeA = (instruction >> 4) & 0x03;
+        uint8_t opC = instruction & 0x1F;
 
         machine.registers[OPC].value = opC;
         int indiceOperacion = searchOperatorByCode(operators, opC);
@@ -166,22 +176,22 @@ int main(int argc, char *argv[]) {
 
         // como ya lei un byte el indice debe incrementarse para leer el
         // operando B
-        indiceFisico++;
+        physicIndex++;
 
-        int32_t valorB = leerValor(machine.memory, tipeB, &indiceFisico);
-        int32_t valorA = leerValor(machine.memory, tipeA, &indiceFisico);
+        int32_t valueB = readValue(machine.memory, tipeB, &physicIndex);
+        int32_t valueA = readValue(machine.memory, tipeA, &physicIndex);
 
         if (tipeA == 0) {
             tipeA = tipeB;
-            valorA = valorB;
-            tipeB = valorB = 0;
+            valueA = valueB;
+            tipeB = valueB = 0;
         }
 
         //printf("%0x %0x_opa %0x_opb\n",machine.registers[IP].value, machine.registers[OP1].value,machine.registers[OP2].value );
         machine.registers[OP2].value =
-            ((int32_t)tipeB << 24) | (valorB & 0x00FFFFFF);
+            ((int32_t)tipeB << 24) | (valueB & 0x00FFFFFF);
         machine.registers[OP1].value =
-            ((int32_t)tipeA << 24) | (valorA & 0x00FFFFFF);
+            ((int32_t)tipeA << 24) | (valueA & 0x00FFFFFF);
         machine.registers[IP].value += 1 + tipeA + tipeB;
 
         

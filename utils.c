@@ -17,22 +17,23 @@ uint16_t lowest(uint32_t x){
 
 }
 
-int32_t leerValor(int8_t mem[], uint8_t cantBytesOperando,uint32_t *indiceFisico){
-    //EL VALOR PUEDE SER NEGATIVO BOLUDO
-    if (cantBytesOperando == 0) 
+int32_t readValue(int8_t mem[], uint8_t operandSizeBytes,
+                  uint32_t *physicIndex) {
+    // EL VALOR PUEDE SER NEGATIVO BOLUDO
+    if (operandSizeBytes == 0)
         return 0;
 
     int32_t v;
-    v =  mem[*indiceFisico];
+    v = mem[*physicIndex];
     v <<= 24;
-    v >>= 24; 
-    cantBytesOperando--;
-    for (int i = 0;  i<cantBytesOperando; i++){
-        v<<=8;
-        v |= (uint8_t)mem[++(*indiceFisico)]; //casteo a sin signo para no arrastrar basura si era negativo
-
+    v >>= 24;
+    operandSizeBytes--;
+    for (int i = 0; i < operandSizeBytes; i++) {
+        v <<= 8;
+        v |= (uint8_t)mem[++(*physicIndex)]; // casteo a sin signo para evitar
+                                             // arrastrar basura negativa
     }
-    (*indiceFisico)++;
+    (*physicIndex)++;
     return v;
 
 }
