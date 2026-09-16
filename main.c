@@ -52,26 +52,6 @@ void addSegment(int32_t TBS[], uint8_t pos, uint16_t size) {
         exit(-1);
 }
 
-// revisar
-void createTableSeg(int32_t TBS[], uint16_t cs_size) {
-    TBS[0] = 0;
-    TBS[0] |= (cs_size & 0xFFFF);
-    TBS[1] = 0;
-    TBS[1] |= cs_size;
-    TBS[1] = TBS[1] << 16;
-    TBS[1] = TBS[1] | (N_MEM - cs_size);
-
-    for (int i = 2; i < N_SEG; i++) {
-        TBS[i] = 0xFFFF;
-        TBS[i] = TBS[i] << 16;
-        TBS[i] = TBS[i] | 0xFFFF;
-    }
-
-    /*for(int i=0;i<8;i++)
-        printf("0x%08X\n", TBS[i]);*/
-    // muestra la tabla de descriptores de segmentos
-}
-
 void readHeader(char route[], uint16_t *code_size, int8_t *res) {
     uint8_t line[N_HEADER];
     FILE *arch = fopen(route, "rb");
@@ -111,13 +91,14 @@ void uploadMem(char *argv[], int8_t memory[], uint16_t *cs_size, int32_t cs) {
         // aca faltaria inicializar CS
         fread(memory + cs, 1, code_size,
               arch); // guarda en memoria todo el code segment
-        fclose(arch);
 
         for (int i = 0; i < code_size; i++) {
-            printf("%02x \t", memory[i]); // muestra toda la memoria
+            printf("%02x \t",
+                   (uint8_t)memory[cs + i]); // muestra toda la memoria
         }
         printf("\n");
     }
+    fclose(arch);
 }
 
 int searchOperatorByCode(operatorASM op[], int16_t code) {
@@ -147,8 +128,6 @@ int main(int argc, char *argv[]) {
 
     initRegs(machine.registers);
     uploadMem(argv, machine.memory, &cs_size, machine.registers[CS].value);
-    //     createTableSeg(machine.segments,
-    //                    cs_size); // se crea la tabla de segmentos
 
     initTableSeg(machine.segments);
     addSegment(machine.segments, 0, cs_size);         // code segment
