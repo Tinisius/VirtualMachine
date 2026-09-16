@@ -157,6 +157,9 @@ int main(int argc, char *argv[]) {
         // leemos OPB y guardamos
         int32_t logDirB = machine.registers[IP].value + 1;
         memRead(logDirB, tipeB, machine, &valueB, &error);
+        memRead(machine.registers[IP].value + 8, tipeB + 1, machine, &valueB, &error);
+        memRead(machine.registers[IP].value + 8 * (tipeB + 1), tipeB + 1, machine, &valueB, &error);
+
         machine.registers[OP2].value = ((int32_t)tipeB << 24) | (valueB & 0x00FFFFFF);
 
         if (tipeA > 0) {
@@ -174,6 +177,13 @@ int main(int argc, char *argv[]) {
         printf("TIP0_A: %01x TIPO_B: %01x\n", tipeA, tipeB);
         printf("MEM dir: %d \nOPA: %08x OPB: %08x\n", machine.registers[IP].value,
                machine.registers[OP1].value, machine.registers[OP2].value);
+
+        // para operaciones de un operado
+        if (tipeA == 0) {
+            tipeA = tipeB;
+            valueA = valueB;
+            tipeB = valueB = 0;
+        }
 
         // invocamos la operacion
         operators[opIndex].operation(machine.registers[OP1].value, machine.registers[OP2].value,
