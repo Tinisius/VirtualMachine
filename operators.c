@@ -16,9 +16,9 @@ void SYS(int32_t OPA, int32_t OPB, type_machine m) {
     int16_t numsAmount = lowest(v_ECX);
 
     int error = 0;
-    int32_t valueB = OPB & 0xFFFFFF;
+    int32_t valueA = OPA & 0xFFFFFF;
 
-    if (valueB == 1) {                         // READ / LECTURA (escribe en memoria)
+    if (valueA == 1) {                         // READ / LECTURA (escribe en memoria)
         for (int i = 0; i < numsAmount; i++) { // realiza N lecturas
             int32_t logicDir = v_EDX + i * size;
             printf("EDX: %X\n", v_EDX);
@@ -34,7 +34,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine m) {
                 break;
             }
         }
-    } else if (valueB == 2) { // WRITE / ESCRITURA (lee de memoria)
+    } else if (valueA == 2) { // WRITE / ESCRITURA (lee de memoria)
         for (int i = 0; i < numsAmount; i++) {
             int32_t logicDir = v_EDX + i * size * 8;
             printf("[%04X]", obtainPhysicDirection(m, logicDir));
