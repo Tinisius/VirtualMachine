@@ -1,20 +1,8 @@
 #include "headers/operators.h"
-#include "utils.c"
+#include "headers/utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-uint32_t obtainPhysicDirection(type_machine m, int32_t logicDir) {
-    uint16_t segmIndex = highest(logicDir);
-    if (segmIndex < N_SEG) {
-        uint16_t offset = lowest(logicDir);
-        uint16_t base = highest(m.segments[segmIndex]);
-        return base + offset;
-    } else {
-        printf("te pasaste de segmentos\n");
-        exit(-1);
-    }
-}
 
 int corresponds(type_machine *m) {
     if (m->registers[IP].value < 0)
@@ -52,6 +40,26 @@ void addSegment(int32_t TBS[], uint8_t pos, uint16_t size) {
         exit(-1);
 }
 
+// revisar
+void createTableSeg(int32_t TBS[], uint16_t cs_size) {
+    TBS[0] = 0;
+    TBS[0] |= (cs_size & 0xFFFF);
+    TBS[1] = 0;
+    TBS[1] |= cs_size;
+    TBS[1] = TBS[1] << 16;
+    TBS[1] = TBS[1] | (N_MEM - cs_size);
+
+    for (int i = 2; i < N_SEG; i++) {
+        TBS[i] = 0xFFFF;
+        TBS[i] = TBS[i] << 16;
+        TBS[i] = TBS[i] | 0xFFFF;
+    }
+
+    /*for(int i=0;i<8;i++)
+        printf("0x%08X\n", TBS[i]);*/
+    // muestra la tabla de descriptores de segmentos
+}
+
 void readHeader(char route[], uint16_t *code_size, int8_t *res) {
     uint8_t line[N_HEADER];
     FILE *arch = fopen(route, "rb");
@@ -69,7 +77,7 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res) {
         // TEST: mostrar lectura
         printf("IDENTIFICADOR: \"%.5s\"\n", line);
         printf("VERSION: %d\n", line[5]);
-        printf("sizeANO EN BYTES: %u\n", *code_size);
+        printf("size EN BYTES: %u\n", *code_size);
     } else
         *res = 0;
     fclose(arch);
@@ -96,7 +104,6 @@ void uploadMem(char *argv[], int8_t memory[], uint16_t *cs_size, int32_t cs) {
             printf("%02x \t",
                    (uint8_t)memory[cs + i]); // muestra toda la memoria
         }
-        printf("\n");
     }
     fclose(arch);
 }
@@ -121,10 +128,14 @@ int searchOperatorByCode(operatorASM op[], int16_t code) {
 
     return -1; // No se encontró el código
 }
+
 int main(int argc, char *argv[]) {
     type_machine machine;
     uint16_t cs_size;
     operatorASM operators[N_OP] = OPERATORS;
+
+    int error = 0;
+    int32_t valueA, valueB, instruction;
 
     initRegs(machine.registers);
     uploadMem(argv, machine.memory, &cs_size, machine.registers[CS].value);
@@ -135,42 +146,52 @@ int main(int argc, char *argv[]) {
 
     while (corresponds(&machine)) { // analiza si corresponde leer/seguir
                                     // leyendo las instruciones
+        // leemos la instruccion
+        memRead(machine.registers[IP].value, 1, machine, &instruction, &error);
 
-        uint32_t physicIndex =
-            obtainPhysicDirection(machine, machine.registers[IP].value);
-        uint8_t instruction = machine.memory[physicIndex];
-
+        // separamos tipos y cod operacion
         uint8_t tipeB = (instruction >> 6) & 0x03;
         uint8_t tipeA = (instruction >> 4) & 0x03;
         uint8_t opC = instruction & 0x1F;
 
+        // guardamos cod en OPC (REGISTRO)
         machine.registers[OPC].value = opC;
-        int8_t indiceOperacion = searchOperatorByCode(operators, opC);
-        if (indiceOperacion == -1) {
-            printf("OPERACION: INVALIDA");
-            exit(-1);
+        int opIndex = searchOperatorByCode(operators, opC);
+
+        // leemos OPB y guardamos
+        int32_t logDirB = machine.registers[IP].value + 1;
+        memRead(logDirB, tipeB, machine, &valueB, &error);
+        machine.registers[OP2].value =
+            ((int32_t)tipeB << 24) | (valueB & 0x00FFFFFF);
+
+        if (tipeA > 0) {
+            // leemos OPA y guardamos
+            int32_t logDirA = logDirB + tipeB;
+            memRead(logDirA, tipeA, machine, &valueA, &error);
+            machine.registers[OP1].value =
+                ((int32_t)tipeA << 24) | (valueA & 0x00FFFFFF);
         }
-        printf("OPERACION: %s\n", operators[indiceOperacion].name);
-        // como ya lei un byte el indice debe incrementarse para leer el
-        // operando B
-        physicIndex++;
+        // pasamos a la sig instruccion
+        machine.registers[IP].value += 1 + tipeA + tipeB;
 
-        int32_t valueB = readValue(machine.memory, tipeB, &physicIndex);
-        int32_t valueA = readValue(machine.memory, tipeA, &physicIndex);
+        if (opIndex != -1)
+            printf("OPERACION: %s\n", operators[opIndex].name);
+        printf("instrucion: %02x\n", instruction);
+        printf("TIP0_A: %01x TIPO_B: %01x\n", tipeA, tipeB);
+        printf("MEM dir: %d \nOPA: %08x OPB: %08x\n",
+               machine.registers[IP].value, machine.registers[OP1].value,
+               machine.registers[OP2].value);
 
+        // para operaciones de un operado
         if (tipeA == 0) {
             tipeA = tipeB;
             valueA = valueB;
             tipeB = valueB = 0;
         }
-        machine.registers[OP2].value =
-            ((int32_t)tipeB << 24) | (valueB & 0x00FFFFFF);
-        machine.registers[OP1].value =
-            ((int32_t)tipeA << 24) | (valueA & 0x00FFFFFF);
-        machine.registers[IP].value += 1 + tipeA + tipeB;
 
-        printf("%0x %0x_opa %0x_opb\n", machine.registers[IP].value,
-               machine.registers[OP1].value, machine.registers[OP2].value);
+        // invocamos la operacion
+        operators[opIndex].operation(machine.registers[OP1].value,
+                                     machine.registers[OP2].value, machine);
     }
 
     return 0;

@@ -1,8 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 #compila el main con el nombre MV.exe y lo guarda en versions (-w elimina warnings)
-& gcc -Wall -Wextra .\main.c -o .\versions\MV.exe -w
-
+& gcc -Wall -Wextra -I.\headers .\main.c .\utils.c -o .\versions\MV.exe -w
 #si la compilacion falló sale (no ejecuta)
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE

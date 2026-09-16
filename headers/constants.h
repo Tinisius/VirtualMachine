@@ -1,3 +1,8 @@
+// proteccion estandar
+// evita definirse mas de una vez
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
+
 #include <stdint.h> //libreria para estandarizar el tamaño en bytes de los tipos
 
 #define N_HEADER 8
@@ -36,8 +41,11 @@ typedef struct {
 } reg;
 
 typedef struct {
-    int8_t memory[N_MEM];
+    uint8_t memory[N_MEM];
     reg registers[N_REG];
     int32_t segments[N_SEG];
 
 } type_machine;
+
+// proteccion estandar
+#endif

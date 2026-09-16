@@ -1,0 +1,8 @@
+SYS en proceso 
+SWAP listo
+SHL
+SHR
+SAR
+LDL
+LDH
+RND

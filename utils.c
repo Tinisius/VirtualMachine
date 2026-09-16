@@ -1,16 +1,13 @@
+#include "utils.h"
+#include "headers/constants.h"
 #include <stdint.h>
-
-int lsh(int number, int shift) {
-    // shifting func
-    return number << shift;
-}
+#include <stdio.h>
 
 uint16_t highest(uint32_t x) { return (x >> 16) & 0xFFFF; }
 
 uint16_t lowest(uint32_t x) { return x & 0xFFFF; }
 
-int32_t readValue(int8_t mem[], uint8_t operandSizeBytes,
-                  uint32_t *physicIndex) {
+int32_t readValue(int8_t mem[], uint8_t operandSizeBytes, uint32_t *physicIndex) {
     // EL VALOR PUEDE SER NEGATIVO BOLUDO
     if (operandSizeBytes == 0)
         return 0;
@@ -27,4 +24,53 @@ int32_t readValue(int8_t mem[], uint8_t operandSizeBytes,
     }
     (*physicIndex)++;
     return v;
+}
+
+uint32_t obtainPhysicDirection(type_machine m, int32_t logicDir) {
+    uint16_t segmIndex = highest(logicDir);
+    if (segmIndex < N_SEG) {
+        uint16_t offset = lowest(logicDir);
+        uint16_t base = highest(m.segments[segmIndex]);
+        return base + offset;
+    } else {
+        printf("te pasaste de segmentos\n");
+    }
+}
+
+int inDS(int32_t physicDir, type_machine m) {
+    return highest(m.segments[1]) < physicDir && physicDir < lowest(m.segments[1]);
+}
+
+int inMem(int32_t physicDir) { return 0 <= physicDir && physicDir < N_MEM; }
+
+int memWrite(int32_t logicDir, int16_t size, type_machine m, int32_t value, int *error) {
+    int32_t dir = obtainPhysicDirection(m, logicDir);
+    for (int i = 0; i < size; i++) {
+        if (inDS(dir + i, m)) {
+            m.memory[dir + i] = value >> (size - i - 1) * 8 & 0xFF; // escribe EL BYTE EN MEM
+        } else
+            return 1;
+    }
+    return 0;
+}
+
+void memRead(int32_t logicDir, int16_t size, type_machine m, int32_t *value, int *error) {
+    int32_t dir = obtainPhysicDirection(m, logicDir);
+    *value = 0;
+    for (int i = size - 1; i >= 0; i--) {
+        if (inMem(dir + i))
+            *value += m.memory[dir + i] << (size - i - 1) * 8;
+        else {
+            *error = 1;
+            return;
+        }
+    }
+}
+
+void printBin(int8_t byte) {
+    for (int j = 7; j >= 0; j--) {
+        printf("%0x ", (byte >> j) & 0b1); // muestra todo el Code Segment
+        if (j == 4)
+            printf(" ");
+    }
 }
