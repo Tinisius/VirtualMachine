@@ -157,9 +157,6 @@ int main(int argc, char *argv[]) {
         // leemos OPB y guardamos
         int32_t logDirB = machine.registers[IP].value + 1;
         memRead(logDirB, tipeB, machine, &valueB, &error);
-        memRead(machine.registers[IP].value + 8, tipeB + 1, machine, &valueB, &error);
-        memRead(machine.registers[IP].value + 8 * (tipeB + 1), tipeB + 1, machine, &valueB, &error);
-
         machine.registers[OP2].value = ((int32_t)tipeB << 24) | (valueB & 0x00FFFFFF);
 
         if (tipeA > 0) {
