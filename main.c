@@ -157,6 +157,10 @@ int main(int argc, char *argv[]) {
         // guardamos cod en OPC (REGISTRO)
         machine.registers[OPC].value = opC;
         int opIndex = searchOperatorByCode(operators, opC);
+        if (opIndex == -1) {
+            printf("\nOPERACION INVALIDA\n");
+            exit(-1);
+        }
 
         // leemos OPB y guardamos
         int32_t logDirB = machine.registers[IP].value + 1;
