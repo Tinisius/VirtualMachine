@@ -1,5 +1,5 @@
-#include "headers/constants.h"
-#include "utils.h"
+#include "../headers/constants.h"
+#include "../headers/utils.h"
 #include <stdint.h>
 #include <stdio.h>
 
@@ -7,9 +7,9 @@ void STOP(int32_t OPA, int32_t OPB, type_machine m);
 
 void SYS(int32_t OPA, int32_t OPB, type_machine m) {
 
-    int32_t v_EDX = m.registers[13].value; // posicion de memoria
-    int32_t v_ECX = m.registers[12].value; // cant - tam
-    int32_t v_EAX = m.registers[10].value; // modo de lectura
+    int32_t v_EDX = m.registers[EDX].value; // posicion de memoria
+    int32_t v_ECX = m.registers[ECX].value; // cant - tam
+    int32_t v_EAX = m.registers[EAX].value; // modo de lectura
 
     int32_t value;
     int16_t size = highest(v_ECX);

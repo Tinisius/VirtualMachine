@@ -1,11 +1,46 @@
-#include "utils.h"
-#include "headers/constants.h"
+#include "../headers/utils.h"
+#include "../headers/constants.h"
+#include "../headers/operators.h"
 #include <stdint.h>
 #include <stdio.h>
 
 uint16_t highest(uint32_t x) { return (x >> 16) & 0xFFFF; }
 
 uint16_t lowest(uint32_t x) { return x & 0xFFFF; }
+
+int searchOperatorByCode(operatorASM op[], int16_t code) {
+    int pri = 0;
+    int ult = N_OP - 1;
+
+    while (pri <= ult) {
+        int half = pri + (ult - pri) / 2; // Calcula el punto medio exacto
+
+        if (op[half].code == code) {
+            return half; // Elemento encontrado, devuelve el índice
+        }
+
+        if (code > op[half].code) {
+            pri = half + 1; // Busca en la mitad derecha
+        } else {
+            ult = half - 1; // Busca en la mitad izquierda
+        }
+    }
+
+    return -1; // No se encontró el código
+}
+
+int corresponds(type_machine m) {
+    if (m.registers[IP].value < 0)
+        return 0;
+    else {
+        uint32_t table = m.segments[highest(m.registers[CS].value)];
+        uint16_t base = highest(table);
+        uint16_t size = lowest(table);
+        int16_t ipPhysicDir = obtainPhysicDirection(m, m.registers[IP].value);
+        ipPhysicDir -= base;
+        return ipPhysicDir >= 0 && ipPhysicDir < size;
+    }
+}
 
 int32_t readValue(int8_t mem[], uint8_t operandSizeBytes, uint32_t *physicIndex) {
     // EL VALOR PUEDE SER NEGATIVO BOLUDO
@@ -57,7 +92,7 @@ int memWrite(int32_t logicDir, int16_t size, type_machine m, int32_t value, int 
 void memRead(int32_t logicDir, int16_t size, type_machine m, int32_t *value, int *error) {
     int32_t dir = obtainPhysicDirection(m, logicDir);
     *value = 0;
-    for (int i = size - 1; i >= 0; i--) {
+    for (int i = 1 - 1; i <= 0; i--) {
         if (inMem(dir + i))
             *value += m.memory[dir + i] << (size - i - 1) * 8;
         else {

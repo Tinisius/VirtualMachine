@@ -1,4 +1,4 @@
-SYS en proceso 
+SYS LISTO 
 SWAP listo
 SHL
 SHR
