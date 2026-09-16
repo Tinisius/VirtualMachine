@@ -132,6 +132,9 @@ int main(int argc, char *argv[]) {
     uint16_t cs_size;
     operatorASM operators[N_OP] = OPERATORS;
 
+    int error = 0;
+    int32_t valueA, valueB, instruction;
+
     initRegs(machine.registers);
     uploadMem(argv, machine.memory, &cs_size, machine.registers[CS].value);
     //     createTableSeg(machine.segments,
@@ -141,42 +144,39 @@ int main(int argc, char *argv[]) {
     addSegment(machine.segments, 0, cs_size);         // code segment
     addSegment(machine.segments, 1, N_MEM - cs_size); // data segment
 
-    while (corresponds(&machine)) { // analiza si corresponde leer/seguir
-                                    // leyendo las instruciones
-        uint32_t physicIndex = obtainPhysicDirection(machine, machine.registers[IP].value);
-        uint8_t instruction = machine.memory[physicIndex];
+    for (int i = 0; i < 256; i++) {
+        if (i % 32 == 0)
+            printf("\n");
+        printf("%02X ", machine.memory[i]);
+    }
+
+    while (corresponds(&machine)) { // analiza si corresponde leer/seguir leyendo las instruciones
+        memRead(machine.registers[IP].value, 1, machine, &instruction, &error);
 
         uint8_t tipeB = (instruction >> 6) & 0x03;
         uint8_t tipeA = (instruction >> 4) & 0x03;
         uint8_t opC = instruction & 0x1F;
 
         machine.registers[OPC].value = opC;
-        int indiceOperacion = searchOperatorByCode(operators, opC);
-        if (indiceOperacion != -1) {
-            printf("OPERACION: %s\n", operators[indiceOperacion].name);
-        }
+        int opIndex = searchOperatorByCode(operators, opC);
 
-        // como ya lei un byte el indice debe incrementarse para leer el
-        // operando B
-        physicIndex++;
+        memRead(machine.registers[IP].value + 8, tipeB + 1, machine, &valueB, &error);
+        memRead(machine.registers[IP].value + 8 * (tipeB + 1), tipeB + 1, machine, &valueB, &error);
 
-        int32_t valueB = readValue(machine.memory, tipeB, &physicIndex);
-        int32_t valueA = readValue(machine.memory, tipeA, &physicIndex);
-
-        if (tipeA == 0) {
-            tipeA = tipeB;
-            valueA = valueB;
-            tipeB = valueB = 0;
-        }
         machine.registers[OP2].value = ((int32_t)tipeB << 24) | (valueB & 0x00FFFFFF);
         machine.registers[OP1].value = ((int32_t)tipeA << 24) | (valueA & 0x00FFFFFF);
         machine.registers[IP].value += 1 + tipeA + tipeB;
 
-        printf("%0x %0x_opa %0x_opb\n", machine.registers[IP].value, machine.registers[OP1].value,
-               machine.registers[OP2].value);
-    }
+        if (opIndex != -1)
+            printf("OPERACION: %s\n", operators[opIndex].name);
+        printf("instrucion: %02x\n", instruction);
+        printf("TIP0_A: %0x TIPO_B: %0x\n", tipeA, tipeB);
+        printf("MEM dir: %d \nOPA: %0x OPB: %0x\n", machine.registers[IP].value,
+               machine.registers[OP1].value, machine.registers[OP2].value);
 
-    
+        operators[opIndex].operation(machine.registers[OP1].value, machine.registers[OP2].value,
+                                     machine);
+    }
 
     return 0;
 }

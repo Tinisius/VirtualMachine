@@ -6,6 +6,8 @@
 void STOP(int32_t OPA, int32_t OPB, type_machine m);
 
 void SYS(int32_t OPA, int32_t OPB, type_machine m) {
+
+    printf("LLEGUEEEEEEEE \n");
     int32_t v_EDX = m.registers[13].value; // posicion de memoria
     int32_t v_ECX = m.registers[12].value; // cant - tam
     int32_t v_EAX = m.registers[10].value; // modo de lectura
@@ -16,10 +18,10 @@ void SYS(int32_t OPA, int32_t OPB, type_machine m) {
 
     int error = 0;
 
-    printf("OPA %d", OPA);
-    printf("OPB %d", OPB);
+    printf("OPA %0x \n", OPA & 0x00ffffff);
+    printf("OPB %0x \n", OPB);
 
-    if (OPB == 1) {                            // READ / LECTURA (escribe en memoria)
+    if (OPA == 1) {                            // READ / LECTURA (escribe en memoria)
         for (int i = 0; i < numsAmount; i++) { // realiza N lecturas
             int32_t logicDir = v_EDX + i * size * 8;
             printf("[%04X]", obtainPhysicDirection(m, logicDir));
@@ -33,7 +35,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine m) {
                 break;
             }
         }
-    } else if (OPB == 2) { // WRITE / ESCRITURA (lee de memoria)
+    } else if (OPA == 2) { // WRITE / ESCRITURA (lee de memoria)
         for (int i = 0; i < numsAmount; i++) {
             int32_t logicDir = v_EDX + i * size * 8;
             printf("[%04X]", obtainPhysicDirection(m, logicDir));
@@ -46,7 +48,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine m) {
         }
 
     } else { // ERROR
-        printf("operando invalido");
+        printf("operando invalido \n");
         STOP(0, 0, m);
     }
 }

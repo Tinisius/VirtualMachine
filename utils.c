@@ -41,6 +41,8 @@ int inDS(int32_t physicDir, type_machine m) {
     return highest(m.segments[1]) < physicDir && physicDir < lowest(m.segments[1]);
 }
 
+int inMem(int32_t physicDir) { return 0 <= physicDir && physicDir < N_MEM; }
+
 int memWrite(int32_t logicDir, int16_t size, type_machine m, int32_t value, int *error) {
     int32_t dir = obtainPhysicDirection(m, logicDir);
     for (int i = 0; i < size; i++) {
@@ -56,8 +58,8 @@ void memRead(int32_t logicDir, int16_t size, type_machine m, int32_t *value, int
     int32_t dir = obtainPhysicDirection(m, logicDir);
     *value = 0;
     for (int i = size - 1; i >= 0; i--) {
-        if (inDS(dir + i, m))
-            value += m.memory[dir + i] << (size - i - 1) * 8;
+        if (inMem(dir + i))
+            *value += m.memory[dir + i] << (size - i - 1) * 8;
         else {
             *error = 1;
             return;
