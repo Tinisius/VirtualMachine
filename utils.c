@@ -44,6 +44,8 @@ int inDS(int32_t physicDir, type_machine m) {
 int inMem(int32_t physicDir) { return 0 <= physicDir && physicDir < N_MEM; }
 
 int memWrite(int32_t logicDir, int16_t size, type_machine m, int32_t value, int *error) {
+    printBin(logicDir);
+    printf("size: %d", size);
     int32_t dir = obtainPhysicDirection(m, logicDir);
     for (int i = 0; i < size; i++) {
         if (inDS(dir + i, m)) {
@@ -64,5 +66,13 @@ void memRead(int32_t logicDir, int16_t size, type_machine m, int32_t *value, int
             *error = 1;
             return;
         }
+    }
+}
+
+void printBin(int8_t byte) {
+    for (int j = 7; j >= 0; j--) {
+        printf("%0x ", (byte >> j) & 0b1); // muestra todo el Code Segment
+        if (j == 4)
+            printf(" ");
     }
 }

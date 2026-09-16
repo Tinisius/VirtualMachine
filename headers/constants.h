@@ -41,7 +41,7 @@ typedef struct {
 } reg;
 
 typedef struct {
-    int8_t memory[N_MEM];
+    uint8_t memory[N_MEM];
     reg registers[N_REG];
     int32_t segments[N_SEG];
 

@@ -18,4 +18,6 @@ int memWrite(int32_t, int16_t, type_machine, int32_t, int *);
 
 void memRead(int32_t, int16_t, type_machine, int32_t *, int *);
 
+void printBin(int8_t);
+
 #endif

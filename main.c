@@ -54,10 +54,6 @@ void createTableSeg(int32_t TBS[], uint16_t cs_size) {
         TBS[i] = TBS[i] << 16;
         TBS[i] = TBS[i] | 0xFFFF;
     }
-
-    /*for(int i=0;i<8;i++)
-        printf("0x%08X\n", TBS[i]);*/
-    // muestra la tabla de descriptores de segmentos
 }
 
 void readHeader(char route[], uint16_t *code_size, int8_t *res) {
@@ -100,9 +96,10 @@ void uploadMem(char *argv[], int8_t memory[], uint16_t *cs_size, int32_t cs) {
         fclose(arch);
 
         for (int i = 0; i < code_size; i++) {
-            printf("%02x \t", memory[i]); // muestra toda la memoria
+            printBin(memory[i]);
+            printf("  (%02x)", (uint8_t)memory[i]);
+            printf("\n");
         }
-        printf("\n");
     }
 }
 
@@ -144,36 +141,41 @@ int main(int argc, char *argv[]) {
     addSegment(machine.segments, 0, cs_size);         // code segment
     addSegment(machine.segments, 1, N_MEM - cs_size); // data segment
 
-    for (int i = 0; i < 256; i++) {
-        if (i % 32 == 0)
-            printf("\n");
-        printf("%02X ", machine.memory[i]);
-    }
-
     while (corresponds(&machine)) { // analiza si corresponde leer/seguir leyendo las instruciones
+        // leemos la instruccion
         memRead(machine.registers[IP].value, 1, machine, &instruction, &error);
 
+        // separamos tipos y cod operacion
         uint8_t tipeB = (instruction >> 6) & 0x03;
         uint8_t tipeA = (instruction >> 4) & 0x03;
         uint8_t opC = instruction & 0x1F;
 
+        // guardamos cod en OPC (REGISTRO)
         machine.registers[OPC].value = opC;
         int opIndex = searchOperatorByCode(operators, opC);
 
-        memRead(machine.registers[IP].value + 8, tipeB + 1, machine, &valueB, &error);
-        memRead(machine.registers[IP].value + 8 * (tipeB + 1), tipeB + 1, machine, &valueB, &error);
-
+        // leemos OPB y guardamos
+        int32_t logDirB = machine.registers[IP].value + 1;
+        memRead(logDirB, tipeB, machine, &valueB, &error);
         machine.registers[OP2].value = ((int32_t)tipeB << 24) | (valueB & 0x00FFFFFF);
-        machine.registers[OP1].value = ((int32_t)tipeA << 24) | (valueA & 0x00FFFFFF);
+
+        if (tipeA > 0) {
+            // leemos OPA y guardamos
+            int32_t logDirA = logDirB + tipeB;
+            memRead(logDirA, tipeA, machine, &valueA, &error);
+            machine.registers[OP1].value = ((int32_t)tipeA << 24) | (valueA & 0x00FFFFFF);
+        }
+        // pasamos a la sig instruccion
         machine.registers[IP].value += 1 + tipeA + tipeB;
 
         if (opIndex != -1)
             printf("OPERACION: %s\n", operators[opIndex].name);
         printf("instrucion: %02x\n", instruction);
-        printf("TIP0_A: %0x TIPO_B: %0x\n", tipeA, tipeB);
-        printf("MEM dir: %d \nOPA: %0x OPB: %0x\n", machine.registers[IP].value,
+        printf("TIP0_A: %01x TIPO_B: %01x\n", tipeA, tipeB);
+        printf("MEM dir: %d \nOPA: %08x OPB: %08x\n", machine.registers[IP].value,
                machine.registers[OP1].value, machine.registers[OP2].value);
 
+        // invocamos la operacion
         operators[opIndex].operation(machine.registers[OP1].value, machine.registers[OP2].value,
                                      machine);
     }

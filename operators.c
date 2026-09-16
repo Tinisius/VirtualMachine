@@ -7,7 +7,6 @@ void STOP(int32_t OPA, int32_t OPB, type_machine m);
 
 void SYS(int32_t OPA, int32_t OPB, type_machine m) {
 
-    printf("LLEGUEEEEEEEE \n");
     int32_t v_EDX = m.registers[13].value; // posicion de memoria
     int32_t v_ECX = m.registers[12].value; // cant - tam
     int32_t v_EAX = m.registers[10].value; // modo de lectura
@@ -17,17 +16,17 @@ void SYS(int32_t OPA, int32_t OPB, type_machine m) {
     int16_t numsAmount = lowest(v_ECX);
 
     int error = 0;
+    int32_t valueB = OPB & 0xFFFFFF;
 
-    printf("OPA %0x \n", OPA & 0x00ffffff);
-    printf("OPB %0x \n", OPB);
-
-    if (OPA == 1) {                            // READ / LECTURA (escribe en memoria)
+    if (valueB == 1) {                         // READ / LECTURA (escribe en memoria)
         for (int i = 0; i < numsAmount; i++) { // realiza N lecturas
-            int32_t logicDir = v_EDX + i * size * 8;
-            printf("[%04X]", obtainPhysicDirection(m, logicDir));
+            int32_t logicDir = v_EDX + i * size;
+            printf("EDX: %X\n", v_EDX);
+            printf("[%04X]:", obtainPhysicDirection(m, logicDir));
             scanf("%d\n", &value);
-            value = value & ((1ULL << (size * 8)) - 1); // trunca value en func del size,
-                                                        // (1 << 8) - 1 es 0xFF
+            // trunca value en funcion del size, (1 << 8) - 1 es 0xFF
+            value = value & ((1ULL << (size * 8)) - 1);
+
             memWrite(logicDir, size, m, value, &error); // escribe en memoria y valida
             if (error) {
                 printf("error de memoria");
@@ -35,7 +34,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine m) {
                 break;
             }
         }
-    } else if (OPA == 2) { // WRITE / ESCRITURA (lee de memoria)
+    } else if (valueB == 2) { // WRITE / ESCRITURA (lee de memoria)
         for (int i = 0; i < numsAmount; i++) {
             int32_t logicDir = v_EDX + i * size * 8;
             printf("[%04X]", obtainPhysicDirection(m, logicDir));
