@@ -145,11 +145,12 @@ int main(int argc, char *argv[]) {
         uint8_t opC = instruction & 0x1F;
 
         machine.registers[OPC].value = opC;
-        int indiceOperacion = searchOperatorByCode(operators, opC);
-        if (indiceOperacion != -1) {
-            printf("OPERACION: %s\n", operators[indiceOperacion].name);
+        int8_t indiceOperacion = searchOperatorByCode(operators, opC);
+        if (indiceOperacion == -1) {
+            printf("OPERACION: INVALIDA");
+            exit(-1);
         }
-
+        printf("OPERACION: %s\n", operators[indiceOperacion].name);
         // como ya lei un byte el indice debe incrementarse para leer el
         // operando B
         physicIndex++;
