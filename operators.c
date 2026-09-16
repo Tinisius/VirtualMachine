@@ -1,9 +1,11 @@
 #include "headers/constants.h"
 #include "utils.h"
 #include <stdint.h>
+#include <stdio.h>
+
+void STOP(int32_t OPA, int32_t OPB, type_machine m);
 
 void SYS(int32_t OPA, int32_t OPB, type_machine m) {
-    //
     int32_t v_EDX = m.registers[13].value; // posicion de memoria
     int32_t v_ECX = m.registers[12].value; // cant - tam
     int32_t v_EAX = m.registers[10].value; // modo de lectura
@@ -12,26 +14,38 @@ void SYS(int32_t OPA, int32_t OPB, type_machine m) {
     int16_t size = highest(v_ECX);
     int16_t numsAmount = lowest(v_ECX);
 
+    int error = 0;
+
     if (OPA == 1) {                            // READ / LECTURA (escribe en memoria)
         for (int i = 0; i < numsAmount; i++) { // realiza N lecturas
-            printf("[XXXX]: ");
+            int32_t logicDir = v_EDX + i * size * 8;
+            printf("[%04X]", obtainPhysicDirection(m, logicDir));
             scanf("%d\n", &value);
             value = value & ((1ULL << (size * 8)) - 1); // trunca value en func del size,
                                                         // (1 << 8) - 1 es 0xFF
-            if (memWrite(value, v_EDX, size, m))        // escribe en memoria y valida
-                return 1;
+            memWrite(logicDir, size, m, value, &error); // escribe en memoria y valida
+            if (error) {
+                printf("error de memoria");
+                STOP(0, 0, m);
+                break;
+            }
         }
     } else if (OPA == 2) { // WRITE / ESCRITURA (lee de memoria)
         for (int i = 0; i < numsAmount; i++) {
-            printf("[XXXX]: ");
-            value = memRead(v_EDX, size, m);
-        }
-        {
-            /* code */
+            int32_t logicDir = v_EDX + i * size * 8;
+            printf("[%04X]", obtainPhysicDirection(m, logicDir));
+            memRead(logicDir, size, m, &value, &error); // lee de memoria y valida
+            if (error) {
+                printf("error de memoria");
+                STOP(0, 0, m);
+                break;
+            }
         }
 
-    } else // ERROR
-        return 0;
+    } else { // ERROR
+        printf("operando invalido");
+        STOP(0, 0, m);
+    }
 }
 
 void JMP(int32_t OPA, int32_t OPB, type_machine m) {

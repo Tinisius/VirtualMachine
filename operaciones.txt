@@ -1,5 +1,5 @@
-SYS
-listo SWAP
+SYS en proceso 
+SWAP listo
 SHL
 SHR
 SAR

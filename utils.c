@@ -1,11 +1,7 @@
 #include "utils.h"
 #include "headers/constants.h"
 #include <stdint.h>
-
-int lsh(int number, int shift) {
-    // shifting func
-    return number << shift;
-}
+#include <stdio.h>
 
 uint16_t highest(uint32_t x) { return (x >> 16) & 0xFFFF; }
 
@@ -29,6 +25,7 @@ int32_t readValue(int8_t mem[], uint8_t operandSizeBytes, uint32_t *physicIndex)
     (*physicIndex)++;
     return v;
 }
+
 uint32_t obtainPhysicDirection(type_machine m, int32_t logicDir) {
     uint16_t segmIndex = highest(logicDir);
     if (segmIndex < N_SEG) {
@@ -37,7 +34,6 @@ uint32_t obtainPhysicDirection(type_machine m, int32_t logicDir) {
         return base + offset;
     } else {
         printf("te pasaste de segmentos\n");
-        exit(-1);
     }
 }
 
@@ -45,24 +41,26 @@ int inDS(int32_t physicDir, type_machine m) {
     return highest(m.segments[1]) < physicDir && physicDir < lowest(m.segments[1]);
 }
 
-int memWrite(int32_t value, int32_t logicDir, int16_t size, type_machine m) {
+int memWrite(int32_t logicDir, int16_t size, type_machine m, int32_t value, int *error) {
     int32_t dir = obtainPhysicDirection(m, logicDir);
     for (int i = 0; i < size; i++) {
-        if (inDS(dir + i, m))
-            m.memory[dir + i] = value; // escribe el byte en mem
-        else
+        if (inDS(dir + i, m)) {
+            m.memory[dir + i] = value >> (size - i - 1) * 8 & 0xFF; // escribe EL BYTE EN MEM
+        } else
             return 1;
     }
     return 0;
 }
 
-int32_t memRead(int32_t logicDir, int16_t size, type_machine m) {
+void memRead(int32_t logicDir, int16_t size, type_machine m, int32_t *value, int *error) {
     int32_t dir = obtainPhysicDirection(m, logicDir);
-    int32_t value;
+    *value = 0;
     for (int i = size - 1; i >= 0; i--) {
         if (inDS(dir + i, m))
             value += m.memory[dir + i] << (size - i - 1) * 8;
-        else
-            return 1;
+        else {
+            *error = 1;
+            return;
+        }
     }
 }

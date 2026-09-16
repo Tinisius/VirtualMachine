@@ -1,5 +1,5 @@
 #include "headers/operators.h"
-#include "utils.h"
+#include "headers/utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -76,7 +76,7 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res) {
         // TEST: mostrar lectura
         printf("IDENTIFICADOR: \"%.5s\"\n", line);
         printf("VERSION: %d\n", line[5]);
-        printf("sizeANO EN BYTES: %u\n", *code_size);
+        printf("size EN BYTES: %u\n", *code_size);
     } else
         *res = 0;
     fclose(arch);
@@ -126,6 +126,7 @@ int searchOperatorByCode(operatorASM op[], int16_t code) {
 
     return -1; // No se encontró el código
 }
+
 int main(int argc, char *argv[]) {
     type_machine machine;
     uint16_t cs_size;
@@ -142,7 +143,6 @@ int main(int argc, char *argv[]) {
 
     while (corresponds(&machine)) { // analiza si corresponde leer/seguir
                                     // leyendo las instruciones
-
         uint32_t physicIndex = obtainPhysicDirection(machine, machine.registers[IP].value);
         uint8_t instruction = machine.memory[physicIndex];
 
