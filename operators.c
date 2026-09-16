@@ -16,7 +16,10 @@ void SYS(int32_t OPA, int32_t OPB, type_machine m) {
 
     int error = 0;
 
-    if (OPA == 1) {                            // READ / LECTURA (escribe en memoria)
+    printf("OPA %d", OPA);
+    printf("OPB %d", OPB);
+
+    if (OPB == 1) {                            // READ / LECTURA (escribe en memoria)
         for (int i = 0; i < numsAmount; i++) { // realiza N lecturas
             int32_t logicDir = v_EDX + i * size * 8;
             printf("[%04X]", obtainPhysicDirection(m, logicDir));
@@ -30,7 +33,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine m) {
                 break;
             }
         }
-    } else if (OPA == 2) { // WRITE / ESCRITURA (lee de memoria)
+    } else if (OPB == 2) { // WRITE / ESCRITURA (lee de memoria)
         for (int i = 0; i < numsAmount; i++) {
             int32_t logicDir = v_EDX + i * size * 8;
             printf("[%04X]", obtainPhysicDirection(m, logicDir));
