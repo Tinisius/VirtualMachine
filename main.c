@@ -163,6 +163,13 @@ int main(int argc, char *argv[]) {
         memRead(machine.registers[IP].value + 8, tipeB + 1, machine, &valueB, &error);
         memRead(machine.registers[IP].value + 8 * (tipeB + 1), tipeB + 1, machine, &valueB, &error);
 
+        //para operaciones de un operado
+        if (tipeA == 0) {
+            tipeA = tipeB;
+            valueA = valueB;
+            tipeB = valueB = 0;
+        }
+
         machine.registers[OP2].value = ((int32_t)tipeB << 24) | (valueB & 0x00FFFFFF);
         machine.registers[OP1].value = ((int32_t)tipeA << 24) | (valueA & 0x00FFFFFF);
         machine.registers[IP].value += 1 + tipeA + tipeB;
