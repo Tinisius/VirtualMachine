@@ -18,7 +18,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine m) {
     int error = 0;
     int32_t valueA = OPA & 0xFFFFFF;
 
-    if (valueA == 1) {                         // READ / LECTURA (escribe en memoria)
+    if (valueB == 1) {                         // READ / LECTURA (escribe en memoria)
         for (int i = 0; i < numsAmount; i++) { // realiza N lecturas
             int32_t logicDir = v_EDX + i * size;
             printf("EDX: %X\n", v_EDX);
@@ -34,7 +34,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine m) {
                 break;
             }
         }
-    } else if (valueA == 2) { // WRITE / ESCRITURA (lee de memoria)
+    } else if (valueB == 2) { // WRITE / ESCRITURA (lee de memoria)
         for (int i = 0; i < numsAmount; i++) {
             int32_t logicDir = v_EDX + i * size * 8;
             printf("[%04X]", obtainPhysicDirection(m, logicDir));
@@ -96,9 +96,7 @@ void STOP(int32_t OPA, int32_t OPB, type_machine m) {
     //
 }
 
-void MOV(int32_t OPA, int32_t OPB, type_machine m) {
-    
-}
+void MOV(int32_t OPA, int32_t OPB, type_machine m) {}
 
 void ADD(int32_t OPA, int32_t OPB, type_machine m) {
     //
@@ -145,22 +143,18 @@ void SHL(int32_t OPA, int32_t OPB, type_machine m) {
     // OPA << OPB
     int8_t tipeA = getOpType(OPA);
 
-
-    if (tipeA == 1){ //registro
-        m.registers[getOPValue(OPB, m)].value = m.registers[getOPValue(OPB, m)].value << getOPValue(OPB, m);
-    }
-    else{
-        if (tipeA == 3){    //op memoria
+    if (tipeA == 1) { // registro
+        m.registers[getOPValue(OPB, m)].value = m.registers[getOPValue(OPB, m)].value
+                                                << getOPValue(OPB, m);
+    } else {
+        if (tipeA == 3) { // op memoria
             int32_t dir = obtainPhysicDirection(m, getOPLogicAdress(OPA, m));
             m.memory[dir] = m.memory[dir] << getOPValue(OPB, m);
-        }
-        else{
+        } else {
             printf("tipo invalido");
-            STOP(0,0, m);
+            STOP(0, 0, m);
         }
-        
     }
-    
 }
 
 void SHR(int32_t OPA, int32_t OPB, type_machine m) {
