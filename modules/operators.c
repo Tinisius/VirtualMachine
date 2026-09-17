@@ -16,7 +16,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine m) {
     int16_t numsAmount = lowest(v_ECX);
 
     int error = 0;
-    int32_t valueA = OPA & 0xFFFFFF;
+    int32_t valueB = OPB & 0xFFFFFF;
 
     if (valueB == 1) {                         // READ / LECTURA (escribe en memoria)
         for (int i = 0; i < numsAmount; i++) { // realiza N lecturas
