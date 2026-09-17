@@ -1,6 +1,7 @@
 #include "../headers/utils.h"
 #include "../headers/constants.h"
 #include "../headers/operators.h"
+#include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -129,7 +130,6 @@ uint32_t getOPValue(uint32_t op, type_machine m) {
 }
 
 uint8_t getOpType(uint32_t op) { return (uint8_t)((op >> 24) & 0x00000003); }
-
 
 uint32_t getOPLogicAdress(uint32_t op, type_machine m) {
     uint32_t adress = m.registers[op & 0x1F].value; //EJ: DS = 0001 0000 0000 0000
