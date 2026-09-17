@@ -3,44 +3,11 @@
 #include "../headers/operators.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 uint16_t highest(uint32_t x) { return (x >> 16) & 0xFFFF; }
 
 uint16_t lowest(uint32_t x) { return x & 0xFFFF; }
-
-int searchOperatorByCode(operatorASM op[], int16_t code) {
-    int pri = 0;
-    int ult = N_OP - 1;
-
-    while (pri <= ult) {
-        int half = pri + (ult - pri) / 2; // Calcula el punto medio exacto
-
-        if (op[half].code == code) {
-            return half; // Elemento encontrado, devuelve el índice
-        }
-
-        if (code > op[half].code) {
-            pri = half + 1; // Busca en la mitad derecha
-        } else {
-            ult = half - 1; // Busca en la mitad izquierda
-        }
-    }
-
-    return -1; // No se encontró el código
-}
-
-int corresponds(type_machine m) {
-    if (m.registers[IP].value < 0)
-        return 0;
-    else {
-        uint32_t table = m.segments[highest(m.registers[CS].value)];
-        uint16_t base = highest(table);
-        uint16_t size = lowest(table);
-        int16_t ipPhysicDir = obtainPhysicDirection(m, m.registers[IP].value);
-        ipPhysicDir -= base;
-        return ipPhysicDir >= 0 && ipPhysicDir < size;
-    }
-}
 
 int searchOperatorByCode(operatorASM op[], int16_t code) {
     int pri = 0;
@@ -163,7 +130,7 @@ uint32_t getOPValue(uint32_t op, type_machine m) {
 
     if (type_op != 2) {
         if (type_op == 3)
-            memRead(getLogicAdress(op, m), 4, m, &value, &error);
+            memRead(getOPLogicAdress(op, m), 4, m, &value, &error);
         else if (op & 0x1F >= 0 && op & 0x1F < N_REG)
             value = m.registers[op & 0x1F].value;
         else
