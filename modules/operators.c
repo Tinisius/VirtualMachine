@@ -31,21 +31,19 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
             value = value & ((1ULL << (size * 8)) - 1);
 
             memWrite(logicDir, size, m, value, &error); // escribe en memoria y valida
-
-            printf("\n");
-
             if (error) {
                 printf("error de memoria");
                 STOP(0, 0, m);
                 break;
             }
+
+            printf("\n");
         }
     } else if (valueB == 2) { // WRITE / ESCRITURA (lee de memoria)
         for (int i = 0; i < numsAmount; i++) {
             int32_t logicDir = v_EDX + i * size;
             printf("[%04X]", obtainPhysicDirection(m, logicDir));
-            memRead(logicDir, size, m, &value,
-                    &error); // lee de memoria y valida
+            memRead(logicDir, size, m, &value, &error); // lee de memoria y valida
             printf(" %d", value);
             if (error) {
                 printf("error de memoria");
@@ -162,7 +160,15 @@ void SHL(int32_t OPA, int32_t OPB, type_machine *m) {
         if (tipeA == 3) { // op memoria
             int32_t value;
             memRead(getOPLogicAdress(OPA, m), 4, m, &value, &error);
+            if (error) {
+                STOP(0, 0, m);
+                return;
+            }
             memWrite(getOPLogicAdress(OPA, m), 4, m, value << getOPValue(OPB, m), &error);
+            if (error) {
+                STOP(0, 0, m);
+                return;
+            }
         } else {
             printf("tipo invalido");
             STOP(0, 0, m);
@@ -181,7 +187,15 @@ void SHR(int32_t OPA, int32_t OPB, type_machine *m) {
         if (tipeA == 3) { // op memoria
             int32_t value;
             memRead(getOPLogicAdress(OPA, m), 4, m, &value, &error);
+            if (error) {
+                STOP(0, 0, m);
+                return;
+            }
             memWrite(getOPLogicAdress(OPA, m), 4, m, value >> getOPValue(OPB, m), &error);
+            if (error) {
+                STOP(0, 0, m);
+                return;
+            }
         } else {
             printf("tipo invalido");
             STOP(0, 0, m);
@@ -200,8 +214,16 @@ void SAR(int32_t OPA, int32_t OPB, type_machine *m) {
         if (tipeA == 3) { // op memoria
             int32_t value;
             memRead(getOPLogicAdress(OPA, m), 4, m, &value, &error);
+            if (error) {
+                STOP(0, 0, m);
+                return;
+            }
             int32_t shiftedValue = arShiftRight(value, getOPValue(OPB, m));
             memWrite(getOPLogicAdress(OPA, m), 4, m, shiftedValue, &error);
+            if (error) {
+                STOP(0, 0, m);
+                return;
+            }
         } else {
             printf("tipo invalido");
             STOP(0, 0, m);
@@ -222,8 +244,16 @@ void LDL(int32_t OPA, int32_t OPB, type_machine *m) {
         if (tipeA == 3) { // op memoria
             int32_t value;
             memRead(getOPLogicAdress(OPA, m), 4, m, &value, &error); // obtiene de memoria
-            value = (value & 0xFFFF0000) | lowB;                     // highMem + LowB
+            if (error) {
+                STOP(0, 0, m);
+                return;
+            }
+            value = (value & 0xFFFF0000) | lowB; // highMem + LowB
             memWrite(getOPLogicAdress(OPA, m), 4, m, value, &error);
+            if (error) {
+                STOP(0, 0, m);
+                return;
+            }
         } else {
             printf("tipo invalido");
             STOP(0, 0, m);
@@ -244,8 +274,16 @@ void LDH(int32_t OPA, int32_t OPB, type_machine *m) {
         if (tipeA == 3) { // op memoria
             int32_t value;
             memRead(getOPLogicAdress(OPA, m), 4, m, &value, &error); // obtiene de memoria
-            value = lowest(value) | (lowB << 16);                    // highMem + LowB
+            if (error) {
+                STOP(0, 0, m);
+                return;
+            }
+            value = lowest(value) | (lowB << 16); // highMem + LowB
             memWrite(getOPLogicAdress(OPA, m), 4, m, value, &error);
+            if (error) {
+                STOP(0, 0, m);
+                return;
+            }
         } else {
             printf("tipo invalido");
             STOP(0, 0, m);
@@ -263,6 +301,10 @@ void RND(int32_t OPA, int32_t OPB, type_machine *m) {
     } else {
         if (tipeA == 3) { // op memoria                   // highMem + LowB
             memWrite(getOPLogicAdress(OPA, m), 4, m, ran, &error);
+            if (error) {
+                STOP(0, 0, m);
+                return;
+            }
         } else {
             printf("tipo invalido");
             STOP(0, 0, m);
