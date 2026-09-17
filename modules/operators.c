@@ -139,8 +139,28 @@ void SWAP(int32_t OPA, int32_t OPB, type_machine m) {
     XOR(OPA, OPB, m);
 }
 
+//--------------------------------------------------------------------------------
+
 void SHL(int32_t OPA, int32_t OPB, type_machine m) {
-    //
+    // OPA << OPB
+    int8_t tipeA = getOpType(OPA);
+
+
+    if (tipeA == 1){ //registro
+        m.registers[getOPValue(OPB, m)].value = m.registers[getOPValue(OPB, m)].value << getOPValue(OPB, m);
+    }
+    else{
+        if (tipeA == 3){    //op memoria
+            int32_t dir = obtainPhysicDirection(m, getOPLogicAdress(OPA, m));
+            m.memory[dir] = m.memory[dir] << getOPValue(OPB, m);
+        }
+        else{
+            printf("tipo invalido");
+            STOP(0,0, m);
+        }
+        
+    }
+    
 }
 
 void SHR(int32_t OPA, int32_t OPB, type_machine m) {
@@ -162,3 +182,5 @@ void LDH(int32_t OPA, int32_t OPB, type_machine m) {
 void RND(int32_t OPA, int32_t OPB, type_machine m) {
     //
 }
+
+//--------------------------------------------------------------------------------
