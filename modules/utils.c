@@ -30,7 +30,7 @@ int searchOperatorByCode(operatorASM op[], int16_t code) {
     return -1; // No se encontró el código
 }
 
-int corresponds(type_machine m) {
+int corresponds(type_machine *m) {
     if (m.registers[IP].value < 0)
         return 0;
     else {
@@ -62,7 +62,7 @@ int32_t readValue(int8_t mem[], uint8_t operandSizeBytes, uint32_t *physicIndex)
     return v;
 }
 
-uint32_t obtainPhysicDirection(type_machine m, int32_t logicDir) {
+uint32_t obtainPhysicDirection(type_machine *m, int32_t logicDir) {
     uint16_t segmIndex = highest(logicDir);
     if (segmIndex < N_SEG) {
         uint16_t offset = lowest(logicDir);
@@ -74,7 +74,7 @@ uint32_t obtainPhysicDirection(type_machine m, int32_t logicDir) {
     }
 }
 
-int inDS(int32_t physicDir, type_machine m) {
+int inDS(int32_t physicDir, type_machine *m) {
     int32_t base = highest(m.segments[1]);
     int32_t size = lowest(m.segments[1]);
 
@@ -83,7 +83,7 @@ int inDS(int32_t physicDir, type_machine m) {
 
 int inMem(int32_t physicDir) { return 0 <= physicDir && physicDir < N_MEM; }
 
-int memWrite(int32_t logicDir, int16_t size, type_machine m, int32_t value, int *error) {
+int memWrite(int32_t logicDir, int16_t size, type_machine *m, int32_t value, int *error) {
     int32_t dir = obtainPhysicDirection(m, logicDir);
     for (int i = 0; i < size; i++) {
         if (inDS(dir + i, m)) {
@@ -94,7 +94,7 @@ int memWrite(int32_t logicDir, int16_t size, type_machine m, int32_t value, int 
     return 0;
 }
 
-void memRead(int32_t logicDir, int16_t size, type_machine m, int32_t *value, int *error) {
+void memRead(int32_t logicDir, int16_t size, type_machine *m, int32_t *value, int *error) {
     int32_t dir = obtainPhysicDirection(m, logicDir);
     *value = 0;
     for (int i = size - 1; i >= 0; i--) {
@@ -115,7 +115,7 @@ void printBin(int8_t byte) {
     }
 }
 
-uint32_t getOPValue(uint32_t op, type_machine m) {
+uint32_t getOPValue(uint32_t op, type_machine *m) {
     uint8_t type_op = getOpType(op);
     uint32_t value = op & 0x0000FFFF;
     int error;
@@ -135,7 +135,7 @@ uint32_t getOPValue(uint32_t op, type_machine m) {
 
 uint8_t getOpType(uint32_t op) { return (uint8_t)((op >> 24) & 0x00000003); }
 
-uint32_t getOPLogicAdress(uint32_t op, type_machine m) {
+uint32_t getOPLogicAdress(uint32_t op, type_machine *m) {
     uint32_t adress = m.registers[op & 0x1F].value; // EJ: DS = 0001 0000 0000 0000
     if (getOpType(op) == 3) {
         adress += (op >> 8) & 0xFFFF;
