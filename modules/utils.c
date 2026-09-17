@@ -31,13 +31,13 @@ int searchOperatorByCode(operatorASM op[], int16_t code) {
 }
 
 int corresponds(type_machine *m) {
-    if (m.registers[IP].value < 0)
+    if (m->registers[IP].value < 0)
         return 0;
     else {
-        uint32_t table = m.segments[highest(m.registers[CS].value)];
+        uint32_t table = m->segments[highest(m->registers[CS].value)];
         uint16_t base = highest(table);
         uint16_t size = lowest(table);
-        int16_t ipPhysicDir = obtainPhysicDirection(m, m.registers[IP].value);
+        int16_t ipPhysicDir = obtainPhysicDirection(m, m->registers[IP].value);
         ipPhysicDir -= base;
         return ipPhysicDir >= 0 && ipPhysicDir < size;
     }
@@ -66,7 +66,7 @@ uint32_t obtainPhysicDirection(type_machine *m, int32_t logicDir) {
     uint16_t segmIndex = highest(logicDir);
     if (segmIndex < N_SEG) {
         uint16_t offset = lowest(logicDir);
-        uint16_t base = highest(m.segments[segmIndex]);
+        uint16_t base = highest(m->segments[segmIndex]);
         return base + offset;
     } else {
         printf("te pasaste de segmentos\n");
@@ -75,8 +75,8 @@ uint32_t obtainPhysicDirection(type_machine *m, int32_t logicDir) {
 }
 
 int inDS(int32_t physicDir, type_machine *m) {
-    int32_t base = highest(m.segments[1]);
-    int32_t size = lowest(m.segments[1]);
+    int32_t base = highest(m->segments[1]);
+    int32_t size = lowest(m->segments[1]);
 
     return physicDir >= base && physicDir < base + size;
 }
@@ -87,7 +87,7 @@ int memWrite(int32_t logicDir, int16_t size, type_machine *m, int32_t value, int
     int32_t dir = obtainPhysicDirection(m, logicDir);
     for (int i = 0; i < size; i++) {
         if (inDS(dir + i, m)) {
-            m.memory[dir + i] = value >> (size - i - 1) * 8 & 0xFF; // escribe EL BYTE EN MEM
+            m->memory[dir + i] = value >> (size - i - 1) * 8 & 0xFF; // escribe EL BYTE EN MEM
         } else
             return 1;
     }
@@ -99,7 +99,7 @@ void memRead(int32_t logicDir, int16_t size, type_machine *m, int32_t *value, in
     *value = 0;
     for (int i = size - 1; i >= 0; i--) {
         if (inMem(dir + i))
-            *value += m.memory[dir + i] << (size - i - 1) * 8;
+            *value += m->memory[dir + i] << (size - i - 1) * 8;
         else {
             *error = 1;
             return;
@@ -124,7 +124,7 @@ uint32_t getOPValue(uint32_t op, type_machine *m) {
         if (type_op == 3)
             memRead(getOPLogicAdress(op, m), 4, m, &value, &error);
         else if (op & 0x1F >= 0 && op & 0x1F < N_REG)
-            value = m.registers[op & 0x1F].value;
+            value = m->registers[op & 0x1F].value;
         else
             error = 1;
     }
@@ -136,7 +136,7 @@ uint32_t getOPValue(uint32_t op, type_machine *m) {
 uint8_t getOpType(uint32_t op) { return (uint8_t)((op >> 24) & 0x00000003); }
 
 uint32_t getOPLogicAdress(uint32_t op, type_machine *m) {
-    uint32_t adress = m.registers[op & 0x1F].value; // EJ: DS = 0001 0000 0000 0000
+    uint32_t adress = m->registers[op & 0x1F].value; // EJ: DS = 0001 0000 0000 0000
     if (getOpType(op) == 3) {
         adress += (op >> 8) & 0xFFFF;
     }
