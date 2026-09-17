@@ -1,13 +1,12 @@
 $ErrorActionPreference = "Stop"
 
-#compila el main con el nombre MV.exe y lo guarda en versions (-w elimina warnings)
-& gcc -Wall -Wextra .\main.c -o .\versions\MV.exe -w
+# compila todos los módulos del proyecto y genera MV.exe
+& gcc -Wall -Wextra -I.\headers .\main.c .\modules\init.c .\modules\operators.c .\modules\utils.c -o .\versions\MV.exe -w
 
-#si la compilacion falló sale (no ejecuta)
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-#y ejecuta el programa compilado
+# ejecuta el programa compilado
 & .\versions\MV.exe .\vmt\program.vmx
 exit $LASTEXITCODE
