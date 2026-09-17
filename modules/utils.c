@@ -92,7 +92,7 @@ int memWrite(int32_t logicDir, int16_t size, type_machine m, int32_t value, int 
 void memRead(int32_t logicDir, int16_t size, type_machine m, int32_t *value, int *error) {
     int32_t dir = obtainPhysicDirection(m, logicDir);
     *value = 0;
-    for (int i = 1 - 1; i <= 0; i--) {
+    for (int i = size - 1; i >= 0; i--) {
         if (inMem(dir + i))
             *value += m.memory[dir + i] << (size - i - 1) * 8;
         else {
