@@ -27,6 +27,8 @@ void printBin(int8_t);
 
 uint32_t getOPValue(uint32_t, type_machine);
 
+uint32_t getOPLogicAdress(uint32_t op, type_machine m);
+
 uint8_t getOpType(uint32_t);
 
 uint32_t getOPLogicAdress(uint32_t, type_machine);

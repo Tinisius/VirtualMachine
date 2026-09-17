@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
 
         if (opIndex != -1)
             printf("OPERACION: %s\n", operators[opIndex].name);
-        printf("instrucion: %02x\n", instruction);
+        printf("instrucion: %0X\n", instruction);
         printf("TIP0_A: %01x TIPO_B: %01x\n", tipeA, tipeB);
         printf("MEM dir: %d \nOPA: %08x OPB: %08x\n",
                machine.registers[IP].value, machine.registers[OP1].value,
@@ -72,6 +72,14 @@ int main(int argc, char *argv[]) {
         // invocamos la operacion
         operators[opIndex].operation(machine.registers[OP1].value,
                                      machine.registers[OP2].value, machine);
+
+        printf("\n");
+    }
+
+    for (int i = 0; i < 256; i++) {
+        printf("%d  ", i);
+        printBin(machine.memory[i]);
+        printf("\n");
     }
 
     return 0;

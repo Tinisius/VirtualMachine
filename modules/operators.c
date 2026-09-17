@@ -7,8 +7,9 @@ void STOP(int32_t OPA, int32_t OPB, type_machine m);
 
 void SYS(int32_t OPA, int32_t OPB, type_machine m) {
 
-    int32_t v_EDX = m.registers[EDX].value; // posicion de memoria
-    int32_t v_ECX = m.registers[ECX].value; // cant - tam
+    int32_t v_EDX =
+        m.registers[27].value; // m.registers[EDX].value; // posicion de memoria
+    int32_t v_ECX = 0x00040002; // m.registers[ECX].value; // cant - tam
     int32_t v_EAX = m.registers[EAX].value; // modo de lectura
 
     int32_t value;
@@ -16,31 +17,38 @@ void SYS(int32_t OPA, int32_t OPB, type_machine m) {
     int16_t numsAmount = lowest(v_ECX);
 
     int error = 0;
-    int32_t valueA = OPA & 0xFFFFFF;
+    int32_t valueB = OPB & 0xFFFFFF;
 
-    if (valueA == 1) { // READ / LECTURA (escribe en memoria)
+    if (valueB == 1) { // READ / LECTURA (escribe en memoria)
         for (int i = 0; i < numsAmount; i++) { // realiza N lecturas
             int32_t logicDir = v_EDX + i * size;
-            printf("EDX: %X\n", v_EDX);
             printf("[%04X]:", obtainPhysicDirection(m, logicDir));
-            scanf("%d\n", &value);
+            if (scanf("%d", &value) != 1) {
+                printf("Entrada invalida\n");
+                STOP(0, 0, m);
+                break;
+            }
             // trunca value en funcion del size, (1 << 8) - 1 es 0xFF
             value = value & ((1ULL << (size * 8)) - 1);
 
             memWrite(logicDir, size, m, value,
                      &error); // escribe en memoria y valida
+
+            printf("\n");
+
             if (error) {
                 printf("error de memoria");
                 STOP(0, 0, m);
                 break;
             }
         }
-    } else if (valueA == 2) { // WRITE / ESCRITURA (lee de memoria)
+    } else if (valueB == 2) { // WRITE / ESCRITURA (lee de memoria)
         for (int i = 0; i < numsAmount; i++) {
-            int32_t logicDir = v_EDX + i * size * 8;
+            int32_t logicDir = v_EDX + i * size;
             printf("[%04X]", obtainPhysicDirection(m, logicDir));
             memRead(logicDir, size, m, &value,
                     &error); // lee de memoria y valida
+            printf(" %d", value);
             if (error) {
                 printf("error de memoria");
                 STOP(0, 0, m);
@@ -106,9 +114,7 @@ void STOP(int32_t OPA, int32_t OPB, type_machine m) {
     m.registers[IP].value = 0xFFFFFFFF;
 }
 
-void MOV(int32_t OPA, int32_t OPB, type_machine m) {
-    //
-}
+void MOV(int32_t OPA, int32_t OPB, type_machine m) {}
 
 void ADD(int32_t OPA, int32_t OPB, type_machine m) {
     //
