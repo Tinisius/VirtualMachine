@@ -1,9 +1,10 @@
 #include "../headers/utils.h"
 #include "../headers/constants.h"
 #include "../headers/operators.h"
-#include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+
 
 uint16_t highest(uint32_t x) { return (x >> 16) & 0xFFFF; }
 
@@ -118,8 +119,8 @@ uint32_t getOPValue(uint32_t op, type_machine m) {
 
     if (type_op != 2) {
         if (type_op == 3)
-            memRead(getLogicAdress(op, m), 4, m, &value, &error);
-        else if (op & 0x1F >= 0 && op & 0x1F < N_REG )
+            memRead(getOPLogicAdress(op, m), 4, m, &value, &error);
+        else if (op & 0x1F >= 0 && op & 0x1F < N_REG)
             value = m.registers[op & 0x1F].value;
         else
             error = 1;
@@ -132,10 +133,10 @@ uint32_t getOPValue(uint32_t op, type_machine m) {
 uint8_t getOpType(uint32_t op) { return (uint8_t)((op >> 24) & 0x00000003); }
 
 uint32_t getOPLogicAdress(uint32_t op, type_machine m) {
-    uint32_t adress = m.registers[op & 0x1F].value; //EJ: DS = 0001 0000 0000 0000
-    if (getOpType(op) == 3){    
+    uint32_t adress = m.registers[op & 0x1F].value; // EJ: DS = 0001 0000 0000 0000
+    if (getOpType(op) == 3) {
         adress += (op >> 8) & 0xFFFF;
     }
-        
+
     return adress;
 }
