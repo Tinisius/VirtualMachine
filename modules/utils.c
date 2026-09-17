@@ -148,6 +148,13 @@ void printBin(int8_t byte) {
             printf(" ");
     }
 }
+int negativeCC(int32_t cc) { return (cc >> 31) & 0x00000001; }
+
+int zeroCC(int32_t cc) { return ((cc << 1) >> 31) & 0x00000001; }
+
+int carryCC(int32_t cc) { return ((cc << 2) >> 31) & 0x00000001; }
+
+int overflowCC(int32_t cc) { return ((cc << 3) >> 31) & 0x00000001; }
 
 uint32_t getOPValue(uint32_t op, type_machine m) {
     uint8_t type_op = getOpType(op);

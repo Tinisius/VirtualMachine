@@ -1,8 +1,9 @@
 #ifndef OPERATORS_H
 #define OPERATORS_H
 
-#include <stdint.h>
 #include "constants.h"
+#include <stdint.h>
+
 
 typedef struct operatorASM {
     char *name;
