@@ -31,8 +31,6 @@ uint32_t getOPLogicAdress(uint32_t op, type_machine *m);
 
 uint8_t getOpType(uint32_t);
 
-uint32_t getOPLogicAdress(uint32_t, type_machine);
-
 int negativeCC(uint32_t cc);
 
 int zeroCC(uint32_t cc);

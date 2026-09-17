@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
 
         // invocamos la operacion
         operators[opIndex].operation(machine.registers[OP1].value,
-                                     machine.registers[OP2].value, machine);
+                                     machine.registers[OP2].value, &machine);
 
         printf("\n");
     }

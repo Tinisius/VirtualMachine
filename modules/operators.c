@@ -3,14 +3,15 @@
 #include <stdint.h>
 #include <stdio.h>
 
-void STOP(int32_t OPA, int32_t OPB, type_machine m);
+void STOP(int32_t OPA, int32_t OPB, type_machine *m);
 
-void SYS(int32_t OPA, int32_t OPB, type_machine m) {
+void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
 
     int32_t v_EDX =
-        m.registers[27].value; // m.registers[EDX].value; // posicion de memoria
-    int32_t v_ECX = 0x00040002; // m.registers[ECX].value; // cant - tam
-    int32_t v_EAX = m.registers[EAX].value; // modo de lectura
+        m->registers[27]
+            .value; // m->registers[EDX].value; // posicion de memoria
+    int32_t v_ECX = 0x00040002; // m->registers[ECX].value; // cant - tam
+    int32_t v_EAX = m->registers[EAX].value; // modo de lectura
 
     int32_t value;
     int16_t size = highest(v_ECX);
@@ -62,93 +63,93 @@ void SYS(int32_t OPA, int32_t OPB, type_machine m) {
     }
 }
 
-void JMP(int32_t OPA, int32_t OPB, type_machine m) {
-    m.registers[IP].value = m.registers[CS].value + getOPValue(OPA, m);
+void JMP(int32_t OPA, int32_t OPB, type_machine *m) {
+    m->registers[IP].value = m->registers[CS].value + getOPValue(OPA, m);
 }
 
-void JP(int32_t OPA, int32_t OPB, type_machine m) {
-    if (!negativeCC(m.registers[CC].value) && !zeroCC(m.registers[CC].value))
+void JP(int32_t OPA, int32_t OPB, type_machine *m) {
+    if (!negativeCC(m->registers[CC].value) && !zeroCC(m->registers[CC].value))
         JMP(OPA, OPB, m);
 }
 
-void JN(int32_t OPA, int32_t OPB, type_machine m) {
-    if (negativeCC(m.registers[CC].value) && !zeroCC(m.registers[CC].value))
+void JN(int32_t OPA, int32_t OPB, type_machine *m) {
+    if (negativeCC(m->registers[CC].value) && !zeroCC(m->registers[CC].value))
         JMP(OPA, OPB, m);
 }
 
-void JZ(int32_t OPA, int32_t OPB, type_machine m) {
-    if (!negativeCC(m.registers[CC].value) && zeroCC(m.registers[CC].value))
+void JZ(int32_t OPA, int32_t OPB, type_machine *m) {
+    if (!negativeCC(m->registers[CC].value) && zeroCC(m->registers[CC].value))
         JMP(OPA, OPB, m);
 }
 
-void JC(int32_t OPA, int32_t OPB, type_machine m) {
-    if (carryCC(m.registers[CC].value))
+void JC(int32_t OPA, int32_t OPB, type_machine *m) {
+    if (carryCC(m->registers[CC].value))
         JMP(OPA, OPB, m);
 }
 
-void JV(int32_t OPA, int32_t OPB, type_machine m) {
-    if (overflowCC(m.registers[CC].value))
+void JV(int32_t OPA, int32_t OPB, type_machine *m) {
+    if (overflowCC(m->registers[CC].value))
         JMP(OPA, OPB, m);
 }
 
-void JNP(int32_t OPA, int32_t OPB, type_machine m) {
-    if (negativeCC(m.registers[CC].value) || zeroCC(m.registers[CC].value))
+void JNP(int32_t OPA, int32_t OPB, type_machine *m) {
+    if (negativeCC(m->registers[CC].value) || zeroCC(m->registers[CC].value))
         JMP(OPA, OPB, m);
 }
 
-void JNN(int32_t OPA, int32_t OPB, type_machine m) {
-    if (!negativeCC(m.registers[CC].value))
+void JNN(int32_t OPA, int32_t OPB, type_machine *m) {
+    if (!negativeCC(m->registers[CC].value))
         JMP(OPA, OPB, m);
 }
 
-void JNZ(int32_t OPA, int32_t OPB, type_machine m) {
-    if (!zeroCC(m.registers[CC].value))
+void JNZ(int32_t OPA, int32_t OPB, type_machine *m) {
+    if (!zeroCC(m->registers[CC].value))
         JMP(OPA, OPB, m);
 }
 
-void NOT(int32_t OPA, int32_t OPB, type_machine m) {
+void NOT(int32_t OPA, int32_t OPB, type_machine *m) {
     //
 }
 
-void STOP(int32_t OPA, int32_t OPB, type_machine m) {
-    m.registers[IP].value = 0xFFFFFFFF;
+void STOP(int32_t OPA, int32_t OPB, type_machine *m) {
+    m->registers[IP].value = 0xFFFFFFFF;
 }
 
-void MOV(int32_t OPA, int32_t OPB, type_machine m) {}
+void MOV(int32_t OPA, int32_t OPB, type_machine *m) {}
 
-void ADD(int32_t OPA, int32_t OPB, type_machine m) {
+void ADD(int32_t OPA, int32_t OPB, type_machine *m) {
     //
 }
 
-void SUB(int32_t OPA, int32_t OPB, type_machine m) {
+void SUB(int32_t OPA, int32_t OPB, type_machine *m) {
     //
 }
 
-void MUL(int32_t OPA, int32_t OPB, type_machine m) {
+void MUL(int32_t OPA, int32_t OPB, type_machine *m) {
     //
 }
 
-void DIV(int32_t OPA, int32_t OPB, type_machine m) {
+void DIV(int32_t OPA, int32_t OPB, type_machine *m) {
     //
 }
 
-void CMP(int32_t OPA, int32_t OPB, type_machine m) {
+void CMP(int32_t OPA, int32_t OPB, type_machine *m) {
     //
 }
 
-void AND(int32_t OPA, int32_t OPB, type_machine m) {
+void AND(int32_t OPA, int32_t OPB, type_machine *m) {
     //
 }
 
-void OR(int32_t OPA, int32_t OPB, type_machine m) {
+void OR(int32_t OPA, int32_t OPB, type_machine *m) {
     //
 }
 
-void XOR(int32_t OPA, int32_t OPB, type_machine m) {
+void XOR(int32_t OPA, int32_t OPB, type_machine *m) {
     //
 }
 
-void SWAP(int32_t OPA, int32_t OPB, type_machine m) {
+void SWAP(int32_t OPA, int32_t OPB, type_machine *m) {
     //
     XOR(OPA, OPB, m);
     XOR(OPB, OPA, m);
@@ -157,17 +158,17 @@ void SWAP(int32_t OPA, int32_t OPB, type_machine m) {
 
 //--------------------------------------------------------------------------------
 
-void SHL(int32_t OPA, int32_t OPB, type_machine m) {
+void SHL(int32_t OPA, int32_t OPB, type_machine *m) {
     // OPA << OPB
     int8_t tipeA = getOpType(OPA);
 
     if (tipeA == 1) { // registro
-        m.registers[getOPValue(OPB, m)].value =
-            m.registers[getOPValue(OPB, m)].value << getOPValue(OPB, m);
+        m->registers[getOPValue(OPB, m)].value =
+            m->registers[getOPValue(OPB, m)].value << getOPValue(OPB, m);
     } else {
         if (tipeA == 3) { // op memoria
             int32_t dir = obtainPhysicDirection(m, getOPLogicAdress(OPA, m));
-            m.memory[dir] = m.memory[dir] << getOPValue(OPB, m);
+            m->memory[dir] = m->memory[dir] << getOPValue(OPB, m);
         } else {
             printf("tipo invalido");
             STOP(0, 0, m);
@@ -175,23 +176,23 @@ void SHL(int32_t OPA, int32_t OPB, type_machine m) {
     }
 }
 
-void SHR(int32_t OPA, int32_t OPB, type_machine m) {
+void SHR(int32_t OPA, int32_t OPB, type_machine *m) {
     //
 }
 
-void SAR(int32_t OPA, int32_t OPB, type_machine m) {
+void SAR(int32_t OPA, int32_t OPB, type_machine *m) {
     //
 }
 
-void LDL(int32_t OPA, int32_t OPB, type_machine m) {
+void LDL(int32_t OPA, int32_t OPB, type_machine *m) {
     //
 }
 
-void LDH(int32_t OPA, int32_t OPB, type_machine m) {
+void LDH(int32_t OPA, int32_t OPB, type_machine *m) {
     //
 }
 
-void RND(int32_t OPA, int32_t OPB, type_machine m) {
+void RND(int32_t OPA, int32_t OPB, type_machine *m) {
     //
 }
 
