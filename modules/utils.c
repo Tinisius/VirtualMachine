@@ -43,7 +43,8 @@ int corresponds(type_machine *m) {
     }
 }
 
-int32_t readValue(int8_t mem[], uint8_t operandSizeBytes, uint32_t *physicIndex) {
+int32_t readValue(int8_t mem[], uint8_t operandSizeBytes,
+                  uint32_t *physicIndex) {
     // EL VALOR PUEDE SER NEGATIVO BOLUDO
     if (operandSizeBytes == 0)
         return 0;
@@ -83,18 +84,21 @@ int inDS(int32_t physicDir, type_machine *m) {
 
 int inMem(int32_t physicDir) { return 0 <= physicDir && physicDir < N_MEM; }
 
-int memWrite(int32_t logicDir, int16_t size, type_machine *m, int32_t value, int *error) {
+int memWrite(int32_t logicDir, int16_t size, type_machine *m, int32_t value,
+             int *error) {
     int32_t dir = obtainPhysicDirection(m, logicDir);
     for (int i = 0; i < size; i++) {
         if (inDS(dir + i, m)) {
-            m->memory[dir + i] = value >> (size - i - 1) * 8 & 0xFF; // escribe EL BYTE EN MEM
+            m->memory[dir + i] =
+                value >> (size - i - 1) * 8 & 0xFF; // escribe EL BYTE EN MEM
         } else
             return 1;
     }
     return 0;
 }
 
-void memRead(int32_t logicDir, int16_t size, type_machine *m, int32_t *value, int *error) {
+void memRead(int32_t logicDir, int16_t size, type_machine *m, int32_t *value,
+             int *error) {
     int32_t dir = obtainPhysicDirection(m, logicDir);
     *value = 0;
     for (int i = size - 1; i >= 0; i--) {
@@ -114,6 +118,13 @@ void printBin(int8_t byte) {
             printf(" ");
     }
 }
+int negativeCC(uint32_t cc) { return (cc >> 31) & 0x01; }
+
+int zeroCC(uint32_t cc) { return ((cc << 1) >> 31) & 0x01; }
+
+int carryCC(uint32_t cc) { return ((cc << 2) >> 31) & 0x01; }
+
+int overflowCC(uint32_t cc) { return ((cc << 3) >> 31) & 0x01; }
 
 uint32_t getOPValue(uint32_t op, type_machine *m) {
     uint8_t type_op = getOpType(op);
@@ -136,7 +147,8 @@ uint32_t getOPValue(uint32_t op, type_machine *m) {
 uint8_t getOpType(uint32_t op) { return (uint8_t)((op >> 24) & 0x00000003); }
 
 uint32_t getOPLogicAdress(uint32_t op, type_machine *m) {
-    uint32_t adress = m->registers[op & 0x1F].value; // EJ: DS = 0001 0000 0000 0000
+    uint32_t adress =
+        m->registers[op & 0x1F].value; // EJ: DS = 0001 0000 0000 0000
     if (getOpType(op) == 3) {
         adress += (op >> 8) & 0xFFFF;
     }

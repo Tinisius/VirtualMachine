@@ -20,7 +20,8 @@ int main(int argc, char *argv[]) {
     addSegment(machine.segments, 0, cs_size);         // code segment
     addSegment(machine.segments, 1, N_MEM - cs_size); // data segment
 
-    while (corresponds(&machine)) { // analiza si corresponde leer/seguir leyendo las instruciones
+    while (corresponds(&machine)) { // analiza si corresponde leer/seguir
+                                    // leyendo las instruciones
         // leemos la instruccion
         memRead(machine.registers[IP].value, 1, &machine, &instruction, &error);
 
@@ -32,17 +33,23 @@ int main(int argc, char *argv[]) {
         // guardamos cod en OPC (REGISTRO)
         machine.registers[OPC].value = opC;
         int opIndex = searchOperatorByCode(operators, opC);
+        if (opIndex == -1) {
+            printf("\nOPERACION INVALIDA\n");
+            exit(-1);
+        }
 
         // leemos OPB y guardamos
         int32_t logDirB = machine.registers[IP].value + 1;
         memRead(logDirB, tipeB, &machine, &valueB, &error);
-        machine.registers[OP2].value = ((int32_t)tipeB << 24) | (valueB & 0x00FFFFFF);
+        machine.registers[OP2].value =
+            ((int32_t)tipeB << 24) | (valueB & 0x00FFFFFF);
 
         if (tipeA > 0) {
             // leemos OPA y guardamos
             int32_t logDirA = logDirB + tipeB;
             memRead(logDirA, tipeA, &machine, &valueA, &error);
-            machine.registers[OP1].value = ((int32_t)tipeA << 24) | (valueA & 0x00FFFFFF);
+            machine.registers[OP1].value =
+                ((int32_t)tipeA << 24) | (valueA & 0x00FFFFFF);
         }
         // pasamos a la sig instruccion
         machine.registers[IP].value += 1 + tipeA + tipeB;
@@ -51,7 +58,9 @@ int main(int argc, char *argv[]) {
             printf("OPERACION: %s\n", operators[opIndex].name);
         printf("instrucion: %0X\n", instruction);
         printf("TIP0_A: %01x TIPO_B: %01x\n", tipeA, tipeB);
-        printf("MEM dir: %d \nOPA: %08x OPB: %08x\n", machine.registers[IP].value, machine.registers[OP1].value, machine.registers[OP2].value);
+        printf("MEM dir: %d \nOPA: %08x OPB: %08x\n",
+               machine.registers[IP].value, machine.registers[OP1].value,
+               machine.registers[OP2].value);
 
         // para operaciones de un operado
         if (tipeA == 0) {
@@ -61,7 +70,8 @@ int main(int argc, char *argv[]) {
         }
 
         // invocamos la operacion
-        operators[opIndex].operation(machine.registers[OP1].value, machine.registers[OP2].value, machine);
+        operators[opIndex].operation(machine.registers[OP1].value,
+                                     machine.registers[OP2].value, &machine);
 
         printf("\n");
     }
