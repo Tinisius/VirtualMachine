@@ -109,3 +109,33 @@ void printBin(int8_t byte) {
             printf(" ");
     }
 }
+
+uint32_t getOPValue(uint32_t op, type_machine m) {
+    uint8_t type_op = getOpType(op);
+    uint32_t value = op & 0x0000FFFF;
+    int error;
+
+    if (type_op != 2) {
+        if (type_op == 3)
+            memRead(getLogicAdress(op, m), 4, m, &value, &error);
+        else if (op & 0x1F >= 0 && op & 0x1F < N_REG )
+            value = m.registers[op & 0x1F].value;
+        else
+            error = 1;
+    }
+    if (error)
+        exit(-1);
+    return value;
+}
+
+uint8_t getOpType(uint32_t op) { return (uint8_t)((op >> 24) & 0x00000003); }
+
+
+uint32_t getOPLogicAdress(uint32_t op, type_machine m) {
+    uint32_t adress = m.registers[op & 0x1F].value; //EJ: DS = 0001 0000 0000 0000
+    if (getOpType(op) == 3){    
+        adress += (op >> 8) & 0xFFFF;
+    }
+        
+    return adress;
+}
