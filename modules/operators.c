@@ -54,38 +54,48 @@ void SYS(int32_t OPA, int32_t OPB, type_machine m) {
     }
 }
 
-void JMP(int32_t OPA, int32_t OPB, type_machine m) {}
+void JMP(int32_t OPA, int32_t OPB, type_machine m) {
+    m.registers[IP].value = m.registers[CS].value + getOPValue(OPA, m);
+}
 
 void JP(int32_t OPA, int32_t OPB, type_machine m) {
-    //
+    if (!negativeCC(m.registers[CC].value) && !zeroCC(m.registers[CC].value))
+        JMP(OPA, OPB, m);
 }
 
 void JN(int32_t OPA, int32_t OPB, type_machine m) {
-    //
+    if (negativeCC(m.registers[CC].value) && !zeroCC(m.registers[CC].value))
+        JMP(OPA, OPB, m);
 }
 
 void JZ(int32_t OPA, int32_t OPB, type_machine m) {
-    //
+    if (!negativeCC(m.registers[CC].value) && zeroCC(m.registers[CC].value))
+        JMP(OPA, OPB, m);
 }
 
 void JC(int32_t OPA, int32_t OPB, type_machine m) {
-    //
+    if (carryCC(m.registers[CC].value))
+        JMP(OPA, OPB, m);
 }
 
 void JV(int32_t OPA, int32_t OPB, type_machine m) {
-    //
+    if (overflowCC(m.registers[CC].value))
+        JMP(OPA, OPB, m);
 }
 
 void JNP(int32_t OPA, int32_t OPB, type_machine m) {
-    //
+    if (negativeCC(m.registers[CC].value) || zeroCC(m.registers[CC].value))
+        JMP(OPA, OPB, m);
 }
 
 void JNN(int32_t OPA, int32_t OPB, type_machine m) {
-    //
+    if (!negativeCC(m.registers[CC].value))
+        JMP(OPA, OPB, m);
 }
 
 void JNZ(int32_t OPA, int32_t OPB, type_machine m) {
-    //
+    if (!zeroCC(m.registers[CC].value))
+        JMP(OPA, OPB, m);
 }
 
 void NOT(int32_t OPA, int32_t OPB, type_machine m) {
@@ -145,22 +155,18 @@ void SHL(int32_t OPA, int32_t OPB, type_machine m) {
     // OPA << OPB
     int8_t tipeA = getOpType(OPA);
 
-
-    if (tipeA == 1){ //registro
-        m.registers[getOPValue(OPB, m)].value = m.registers[getOPValue(OPB, m)].value << getOPValue(OPB, m);
-    }
-    else{
-        if (tipeA == 3){    //op memoria
+    if (tipeA == 1) { // registro
+        m.registers[getOPValue(OPB, m)].value =
+            m.registers[getOPValue(OPB, m)].value << getOPValue(OPB, m);
+    } else {
+        if (tipeA == 3) { // op memoria
             int32_t dir = obtainPhysicDirection(m, getOPLogicAdress(OPA, m));
             m.memory[dir] = m.memory[dir] << getOPValue(OPB, m);
-        }
-        else{
+        } else {
             printf("tipo invalido");
-            STOP(0,0, m);
+            STOP(0, 0, m);
         }
-        
     }
-    
 }
 
 void SHR(int32_t OPA, int32_t OPB, type_machine m) {

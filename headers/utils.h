@@ -2,7 +2,6 @@
 #include <constants.h>
 #include <stdint.h>
 
-
 #ifndef UTILS_H
 #define UTILS_H
 
@@ -31,5 +30,13 @@ uint32_t getOPValue(uint32_t, type_machine);
 uint8_t getOpType(uint32_t);
 
 uint32_t getOPLogicAdress(uint32_t, type_machine);
+
+int negativeCC(uint32_t cc);
+
+int zeroCC(uint32_t cc);
+
+int carryCC(uint32_t cc);
+
+int overflowCC(uint32_t cc);
 
 #endif
