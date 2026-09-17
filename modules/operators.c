@@ -7,10 +7,8 @@ void STOP(int32_t OPA, int32_t OPB, type_machine *m);
 
 void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
 
-    int32_t v_EDX =
-        m->registers[27]
-            .value; // m->registers[EDX].value; // posicion de memoria
-    int32_t v_ECX = 0x00040002; // m->registers[ECX].value; // cant - tam
+    int32_t v_EDX = m->registers[27].value;  // m->registers[EDX].value; // posicion de memoria
+    int32_t v_ECX = 0x00040002;              // m->registers[ECX].value; // cant - tam
     int32_t v_EAX = m->registers[EAX].value; // modo de lectura
 
     int32_t value;
@@ -20,7 +18,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
     int error = 0;
     int32_t valueB = OPB & 0xFFFFFF;
 
-    if (valueB == 1) { // READ / LECTURA (escribe en memoria)
+    if (valueB == 1) {                         // READ / LECTURA (escribe en memoria)
         for (int i = 0; i < numsAmount; i++) { // realiza N lecturas
             int32_t logicDir = v_EDX + i * size;
             printf("[%04X]:", obtainPhysicDirection(m, logicDir));
@@ -63,9 +61,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
     }
 }
 
-void JMP(int32_t OPA, int32_t OPB, type_machine *m) {
-    m->registers[IP].value = m->registers[CS].value + getOPValue(OPA, m);
-}
+void JMP(int32_t OPA, int32_t OPB, type_machine *m) { m->registers[IP].value = m->registers[CS].value + getOPValue(OPA, m); }
 
 void JP(int32_t OPA, int32_t OPB, type_machine *m) {
     if (!negativeCC(m->registers[CC].value) && !zeroCC(m->registers[CC].value))
@@ -111,9 +107,7 @@ void NOT(int32_t OPA, int32_t OPB, type_machine *m) {
     //
 }
 
-void STOP(int32_t OPA, int32_t OPB, type_machine *m) {
-    m->registers[IP].value = 0xFFFFFFFF;
-}
+void STOP(int32_t OPA, int32_t OPB, type_machine *m) { m->registers[IP].value = 0xFFFFFFFF; }
 
 void MOV(int32_t OPA, int32_t OPB, type_machine *m) {}
 
@@ -163,8 +157,7 @@ void SHL(int32_t OPA, int32_t OPB, type_machine *m) {
     int8_t tipeA = getOpType(OPA);
 
     if (tipeA == 1) { // registro
-        m->registers[getOPValue(OPB, m)].value =
-            m->registers[getOPValue(OPB, m)].value << getOPValue(OPB, m);
+        m->registers[getOPValue(OPB, m)].value = m->registers[getOPValue(OPB, m)].value << getOPValue(OPB, m);
     } else {
         if (tipeA == 3) { // op memoria
             int32_t dir = obtainPhysicDirection(m, getOPLogicAdress(OPA, m));
