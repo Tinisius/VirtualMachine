@@ -1,5 +1,6 @@
 #include <constants.h>
 #include <stdint.h>
+#include "operators.h"
 
 #ifndef UTILS_H
 #define UTILS_H
@@ -7,6 +8,10 @@
 uint16_t highest(uint32_t);
 
 uint16_t lowest(uint32_t);
+
+int searchOperatorByCode(operatorASM [], int16_t );
+
+int corresponds(type_machine);
 
 int32_t readValue(int8_t[], uint8_t, uint32_t *);
 

@@ -1,4 +1,15 @@
-#include "../operators.c"
+#ifndef OPERATORS_H
+#define OPERATORS_H
+
+#include <stdint.h>
+#include "constants.h"
+
+typedef struct operatorASM {
+    char *name;
+    int16_t code;
+    void (*operation)(int32_t, int32_t, type_machine);
+} operatorASM;
+
 #define OPERATORS                                                              \
     {                                                                          \
         {"SYS", 0x00, SYS}, {"JMP", 0x01, JMP}, {"JP", 0x02, JP},              \
@@ -13,12 +24,6 @@
             "RND", 0x1F, RND                                                   \
         }                                                                      \
     }
-
-typedef struct {
-    char *name;
-    int16_t code;
-    void (*operation)(int32_t, int32_t, type_machine);
-} operatorASM;
 
 void SYS(int32_t, int32_t, type_machine);
 void JMP(int32_t, int32_t, type_machine);
@@ -50,3 +55,5 @@ void SAR(int32_t, int32_t, type_machine);
 void LDL(int32_t, int32_t, type_machine);
 void LDH(int32_t, int32_t, type_machine);
 void RND(int32_t, int32_t, type_machine);
+
+#endif

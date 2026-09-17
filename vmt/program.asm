@@ -1,3 +1,4 @@
 MOV EDX, DS
 MOV ECX, 0x0204
 SYS 1
+JMP [2]

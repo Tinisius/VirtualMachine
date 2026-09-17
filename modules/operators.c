@@ -1,5 +1,5 @@
-#include "headers/constants.h"
-#include "utils.h"
+#include "../headers/constants.h"
+#include "../headers/utils.h"
 #include <stdint.h>
 #include <stdio.h>
 
@@ -7,9 +7,9 @@ void STOP(int32_t OPA, int32_t OPB, type_machine m);
 
 void SYS(int32_t OPA, int32_t OPB, type_machine m) {
 
-    int32_t v_EDX = m.registers[13].value; // posicion de memoria
-    int32_t v_ECX = m.registers[12].value; // cant - tam
-    int32_t v_EAX = m.registers[10].value; // modo de lectura
+    int32_t v_EDX = m.registers[EDX].value; // posicion de memoria
+    int32_t v_ECX = m.registers[ECX].value; // cant - tam
+    int32_t v_EAX = m.registers[EAX].value; // modo de lectura
 
     int32_t value;
     int16_t size = highest(v_ECX);
@@ -18,7 +18,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine m) {
     int error = 0;
     int32_t valueA = OPA & 0xFFFFFF;
 
-    if (valueA == 1) {                         // READ / LECTURA (escribe en memoria)
+    if (valueA == 1) { // READ / LECTURA (escribe en memoria)
         for (int i = 0; i < numsAmount; i++) { // realiza N lecturas
             int32_t logicDir = v_EDX + i * size;
             printf("EDX: %X\n", v_EDX);
@@ -27,7 +27,8 @@ void SYS(int32_t OPA, int32_t OPB, type_machine m) {
             // trunca value en funcion del size, (1 << 8) - 1 es 0xFF
             value = value & ((1ULL << (size * 8)) - 1);
 
-            memWrite(logicDir, size, m, value, &error); // escribe en memoria y valida
+            memWrite(logicDir, size, m, value,
+                     &error); // escribe en memoria y valida
             if (error) {
                 printf("error de memoria");
                 STOP(0, 0, m);
@@ -38,7 +39,8 @@ void SYS(int32_t OPA, int32_t OPB, type_machine m) {
         for (int i = 0; i < numsAmount; i++) {
             int32_t logicDir = v_EDX + i * size * 8;
             printf("[%04X]", obtainPhysicDirection(m, logicDir));
-            memRead(logicDir, size, m, &value, &error); // lee de memoria y valida
+            memRead(logicDir, size, m, &value,
+                    &error); // lee de memoria y valida
             if (error) {
                 printf("error de memoria");
                 STOP(0, 0, m);
@@ -52,9 +54,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine m) {
     }
 }
 
-void JMP(int32_t OPA, int32_t OPB, type_machine m) {
-    //
-}
+void JMP(int32_t OPA, int32_t OPB, type_machine m) {}
 
 void JP(int32_t OPA, int32_t OPB, type_machine m) {
     //
@@ -93,7 +93,7 @@ void NOT(int32_t OPA, int32_t OPB, type_machine m) {
 }
 
 void STOP(int32_t OPA, int32_t OPB, type_machine m) {
-    //
+    m.registers[IP].value = 0xFFFFFFFF;
 }
 
 void MOV(int32_t OPA, int32_t OPB, type_machine m) {
