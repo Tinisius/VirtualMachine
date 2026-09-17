@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 uint16_t highest(uint32_t x) { return (x >> 16) & 0xFFFF; }
 
 uint16_t lowest(uint32_t x) { return x & 0xFFFF; }
@@ -71,11 +70,15 @@ uint32_t obtainPhysicDirection(type_machine m, int32_t logicDir) {
         return base + offset;
     } else {
         printf("te pasaste de segmentos\n");
+        exit(-1);
     }
 }
 
 int inDS(int32_t physicDir, type_machine m) {
-    return highest(m.segments[1]) < physicDir && physicDir < lowest(m.segments[1]);
+    int32_t base = highest(m.segments[1]);
+    int32_t size = lowest(m.segments[1]);
+
+    return physicDir >= base && physicDir < base + size;
 }
 
 int inMem(int32_t physicDir) { return 0 <= physicDir && physicDir < N_MEM; }

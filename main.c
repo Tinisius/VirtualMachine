@@ -1,10 +1,9 @@
 #include "./headers/operators.h"
-#include "headers/utils.h"
 #include "headers/init.h"
+#include "headers/utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 
 int main(int argc, char *argv[]) {
     type_machine machine;
@@ -52,8 +51,7 @@ int main(int argc, char *argv[]) {
             printf("OPERACION: %s\n", operators[opIndex].name);
         printf("instrucion: %0X\n", instruction);
         printf("TIP0_A: %01x TIPO_B: %01x\n", tipeA, tipeB);
-        printf("MEM dir: %d \nOPA: %08x OPB: %08x\n", machine.registers[IP].value,
-               machine.registers[OP1].value, machine.registers[OP2].value);
+        printf("MEM dir: %d \nOPA: %08x OPB: %08x\n", machine.registers[IP].value, machine.registers[OP1].value, machine.registers[OP2].value);
 
         // para operaciones de un operado
         if (tipeA == 0) {
@@ -61,10 +59,17 @@ int main(int argc, char *argv[]) {
             valueA = valueB;
             tipeB = valueB = 0;
         }
-        
+
         // invocamos la operacion
-        operators[opIndex].operation(machine.registers[OP1].value, machine.registers[OP2].value,
-                                     machine);
+        operators[opIndex].operation(machine.registers[OP1].value, machine.registers[OP2].value, machine);
+
+        printf("\n");
+    }
+
+    for (int i = 0; i < 256; i++) {
+        printf("%d  ", i);
+        printBin(machine.memory[i]);
+        printf("\n");
     }
 
     return 0;
