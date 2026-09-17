@@ -147,169 +147,51 @@ void SWAP(int32_t OPA, int32_t OPB, type_machine *m) {
     XOR(OPA, OPB, m);
 }
 
-//--------------------------------------------------------------------------------
-
 void SHL(int32_t OPA, int32_t OPB, type_machine *m) {
     int8_t tipeA = getOpType(OPA);
     int error = 0;
 
-    if (tipeA == 1) { // registro
-        int32_t value = m->registers[OPA & 0x1F].value << getOPValue(OPB, m);
-        m->registers[OPA & 0x1F].value = value;
-    } else {
-        if (tipeA == 3) { // op memoria
-            int32_t value;
-            memRead(getOPLogicAdress(OPA, m), 4, m, &value, &error);
-            if (error) {
-                STOP(0, 0, m);
-                return;
-            }
-            memWrite(getOPLogicAdress(OPA, m), 4, m, value << getOPValue(OPB, m), &error);
-            if (error) {
-                STOP(0, 0, m);
-                return;
-            }
-        } else {
-            printf("tipo invalido");
-            STOP(0, 0, m);
-        }
-    }
+    int32_t value = getOPValue(OPA, m) << getOPValue(OPB, m);
+    setOPValue(OPA, m, value);
 }
 
 void SHR(int32_t OPA, int32_t OPB, type_machine *m) {
     int8_t tipeA = getOpType(OPA);
     int error = 0;
 
-    if (tipeA == 1) { // registro
-        int32_t value = m->registers[OPA & 0x1F].value >> getOPValue(OPB, m);
-        m->registers[OPA & 0x1F].value = value;
-    } else {
-        if (tipeA == 3) { // op memoria
-            int32_t value;
-            memRead(getOPLogicAdress(OPA, m), 4, m, &value, &error);
-            if (error) {
-                STOP(0, 0, m);
-                return;
-            }
-            memWrite(getOPLogicAdress(OPA, m), 4, m, value >> getOPValue(OPB, m), &error);
-            if (error) {
-                STOP(0, 0, m);
-                return;
-            }
-        } else {
-            printf("tipo invalido");
-            STOP(0, 0, m);
-        }
-    }
+    int32_t value = getOPValue(OPA, m) >> getOPValue(OPB, m);
+    setOPValue(OPA, m, value);
 }
 
 void SAR(int32_t OPA, int32_t OPB, type_machine *m) {
     int8_t tipeA = getOpType(OPA);
-    int error = 0;
 
-    if (tipeA == 1) { // registro
-        int32_t shiftedValue = arShiftRight(m->registers[OPA & 0x1F].value, getOPValue(OPB, m));
-        m->registers[OPA & 0x1F].value = shiftedValue;
-    } else {
-        if (tipeA == 3) { // op memoria
-            int32_t value;
-            memRead(getOPLogicAdress(OPA, m), 4, m, &value, &error);
-            if (error) {
-                STOP(0, 0, m);
-                return;
-            }
-            int32_t shiftedValue = arShiftRight(value, getOPValue(OPB, m));
-            memWrite(getOPLogicAdress(OPA, m), 4, m, shiftedValue, &error);
-            if (error) {
-                STOP(0, 0, m);
-                return;
-            }
-        } else {
-            printf("tipo invalido");
-            STOP(0, 0, m);
-        }
-    }
+    int32_t value = arShiftRight(getOPValue(OPA, m), getOPValue(OPB, m));
+    setOPValue(OPA, m, value);
 }
 
 // carga los 2 bytes menos significativos de OPA, con los 2 bytes menos significativos de OPB
 void LDL(int32_t OPA, int32_t OPB, type_machine *m) {
     int8_t tipeA = getOpType(OPA);
     int16_t lowB = lowest(getOPValue(OPB, m));
-    int error = 0;
 
-    if (tipeA == 1) { // registro
-        int32_t RegValue = getOPValue(OPA, m);
-        m->registers[OPA & 0x1F].value = (RegValue & 0xFFFF0000) | lowB; // highREG + LowB
-    } else {
-        if (tipeA == 3) { // op memoria
-            int32_t value;
-            memRead(getOPLogicAdress(OPA, m), 4, m, &value, &error); // obtiene de memoria
-            if (error) {
-                STOP(0, 0, m);
-                return;
-            }
-            value = (value & 0xFFFF0000) | lowB; // highMem + LowB
-            memWrite(getOPLogicAdress(OPA, m), 4, m, value, &error);
-            if (error) {
-                STOP(0, 0, m);
-                return;
-            }
-        } else {
-            printf("tipo invalido");
-            STOP(0, 0, m);
-        }
-    }
+    int32_t value = (getOPValue(OPA, m) & 0xFFFF0000) | lowB;
+    setOPValue(OPA, m, value);
 }
 
 // carga los 2 bytes más significativos de OPA, con los 2 bytes menos significativos de OPB
 void LDH(int32_t OPA, int32_t OPB, type_machine *m) {
     int8_t tipeA = getOpType(OPA);
     int16_t lowB = lowest(getOPValue(OPB, m));
-    int error = 0;
 
-    if (tipeA == 1) { // registro
-        int32_t RegValue = getOPValue(OPA, m);
-        m->registers[OPA & 0x1F].value = lowest(RegValue) | (lowB << 16); // lowREG + LowB
-    } else {
-        if (tipeA == 3) { // op memoria
-            int32_t value;
-            memRead(getOPLogicAdress(OPA, m), 4, m, &value, &error); // obtiene de memoria
-            if (error) {
-                STOP(0, 0, m);
-                return;
-            }
-            value = lowest(value) | (lowB << 16); // highMem + LowB
-            memWrite(getOPLogicAdress(OPA, m), 4, m, value, &error);
-            if (error) {
-                STOP(0, 0, m);
-                return;
-            }
-        } else {
-            printf("tipo invalido");
-            STOP(0, 0, m);
-        }
-    }
+    int32_t value = lowest(getOPValue(OPA, m)) | (lowB << 16);
+
+    setOPValue(OPA, m, value);
 }
 
 void RND(int32_t OPA, int32_t OPB, type_machine *m) {
     int8_t tipeA = getOpType(OPA);
     int32_t ran = rand() % (getOPValue(OPB, m) + 1);
-    int error = 0;
 
-    if (tipeA == 1) { // registro
-        m->registers[OPA & 0x1F].value = ran;
-    } else {
-        if (tipeA == 3) { // op memoria                   // highMem + LowB
-            memWrite(getOPLogicAdress(OPA, m), 4, m, ran, &error);
-            if (error) {
-                STOP(0, 0, m);
-                return;
-            }
-        } else {
-            printf("tipo invalido");
-            STOP(0, 0, m);
-        }
-    }
+    setOPValue(OPA, m, ran);
 }
-
-//--------------------------------------------------------------------------------

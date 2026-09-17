@@ -151,6 +151,26 @@ uint32_t getOPLogicAdress(uint32_t op, type_machine *m) {
     return adress;
 }
 
+void setOPValue(uint32_t OP, type_machine *m, int32_t newValue) {
+    int8_t tipeA = getOpType(OP);
+    int error = 0;
+
+    if (tipeA == 1) { // registro
+        m->registers[OP & 0x1F].value = newValue;
+    } else {
+        if (tipeA == 3) { // op memoria
+            memWrite(getOPLogicAdress(OP, m), 4, m, newValue, &error);
+            if (error) {
+                STOP(0, 0, m);
+                return;
+            }
+        } else
+            error = 1;
+    }
+    if (error)
+        exit(-1);
+}
+
 int32_t arShiftRight(int32_t value, int32_t shift) {
     if ((value >> 31) & 0b1) { // si es negativo
         for (int i = 0; i < shift; i++) {
