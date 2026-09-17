@@ -1,4 +1,4 @@
 .vscode
-./vmt
+vmt
 .clang-format
-./versions
+versions
