@@ -149,26 +149,32 @@ void printBin(int8_t byte) {
     }
 }
 
-int negativeCC(int32_t cc) { return (cc >> 31) & 0x00000001; }
-
-int zeroCC(int32_t cc) { return ((cc << 1) >> 31) & 0x00000001; }
-
-int carryCC(int32_t cc) { return ((cc << 2) >> 31) & 0x00000001; }
-
-int overflowCC(int32_t cc) { return ((cc << 3) >> 31) & 0x00000001; }
-
 uint32_t getOPValue(uint32_t op, type_machine m) {
-    uint8_t type_op = (uint8_t)((op >> 24) & 0x00000003);
-    uint32_t value = op & 0x0000FFFF, reg_code;
-    uint16_t offset = 0;
+    uint8_t type_op = getOpType(op);
+    uint32_t value = op & 0x0000FFFF;
+    int error;
+
     if (type_op != 2) {
         if (type_op == 3)
-            offset = (uint16_t)op >> 16;
-        reg_code = (op & 0x1F) + offset;
-        if (reg_code >= 0 && reg_code <= N_REG - 1)
-            value = m.registers[reg_code].value;
+            memRead(getLogicAdress(op, m), 4, m, &value, &error);
+        else if (op & 0x1F >= 0 && op & 0x1F < N_REG)
+            value = m.registers[op & 0x1F].value;
         else
-            exit(-1);
+            error = 1;
     }
+    if (error)
+        exit(-1);
     return value;
+}
+
+uint8_t getOpType(uint32_t op) { return (uint8_t)((op >> 24) & 0x00000003); }
+
+uint32_t getOPLogicAdress(uint32_t op, type_machine m) {
+    uint32_t adress =
+        m.registers[op & 0x1F].value; // EJ: DS = 0001 0000 0000 0000
+    if (getOpType(op) == 3) {
+        adress += (op >> 8) & 0xFFFF;
+    }
+
+    return adress;
 }
