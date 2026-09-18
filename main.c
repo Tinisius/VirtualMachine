@@ -1,4 +1,5 @@
 #include "./headers/operators.h"
+#include "headers/disassembler.h"
 #include "headers/init.h"
 #include "headers/utils.h"
 #include <stdio.h>
@@ -9,11 +10,12 @@ int main(int argc, char *argv[]) {
     type_machine machine;
     uint16_t cs_size;
     operatorASM operators[N_OP] = OPERATORS;
-
+    uint8_t disassembler = argc > 2 && strcmp(argv[2], "-d") == 0;
     int error = 0;
-    int32_t valueA, valueB, instruction;
+    int32_t valueA = 0, valueB = 0, instruction;
 
     initRegs(machine.registers);
+    initMainRegs(machine.registers);
     uploadMem(argv, machine.memory, &cs_size, machine.registers[CS].value);
 
     initTableSeg(machine.segments);
@@ -22,6 +24,9 @@ int main(int argc, char *argv[]) {
 
     while (corresponds(&machine)) { // analiza si corresponde leer/seguir
                                     // leyendo las instruciones
+
+        int32_t instrLogDir = machine.registers[IP].value;
+
         // leemos la instruccion
         memRead(machine.registers[IP].value, 1, &machine, &instruction, &error);
 
@@ -51,16 +56,23 @@ int main(int argc, char *argv[]) {
             machine.registers[OP1].value =
                 ((int32_t)tipeA << 24) | (valueA & 0x00FFFFFF);
         }
+        int instrLen = 1 + tipeA + tipeB;
+        int32_t physicDir = obtainPhysicDirection(&machine, instrLogDir);
+        if (disassembler)
+            disassembleInstruction(&machine, physicDir, instrLen,
+                                   operators[opIndex].name, tipeA, valueA,
+                                   tipeB, valueB);
+
         // pasamos a la sig instruccion
         machine.registers[IP].value += 1 + tipeA + tipeB;
 
-        if (opIndex != -1)
-            printf("OPERACION: %s\n", operators[opIndex].name);
-        printf("instrucion: %0X\n", instruction);
-        printf("TIP0_A: %01x TIPO_B: %01x\n", tipeA, tipeB);
-        printf("MEM dir: %d \nOPA: %08x OPB: %08x\n",
-               machine.registers[IP].value, machine.registers[OP1].value,
-               machine.registers[OP2].value);
+        // if (opIndex != -1)
+        //     printf("OPERACION: %s\n", operators[opIndex].name);
+        // printf("instrucion: %0X\n", instruction);
+        // printf("TIP0_A: %01x TIPO_B: %01x\n", tipeA, tipeB);
+        // printf("MEM dir: %d \nOPA: %08x OPB: %08x\n",
+        //        machine.registers[IP].value, machine.registers[OP1].value,
+        //        machine.registers[OP2].value);
 
         // para operaciones de un operado
         if (tipeA == 0) {

@@ -3,14 +3,16 @@
 #ifndef INIT_H
 #define INIT_H
 
-void initRegs(reg []);
+void initMainRegs(reg[]);
 
-void initTableSeg(int32_t []);
+void initRegs(reg[]);
 
-void addSegment(int32_t [], uint8_t, uint16_t);
+void initTableSeg(int32_t[]);
 
-void readHeader(char [], uint16_t *, int8_t *);
+void addSegment(int32_t[], uint8_t, uint16_t);
 
-void uploadMem(char *[], int8_t [], uint16_t *, int32_t );
+void readHeader(char[], uint16_t *, int8_t *);
+
+void uploadMem(char *[], int8_t[], uint16_t *, int32_t);
 
 #endif

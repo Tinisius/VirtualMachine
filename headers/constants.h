@@ -35,6 +35,13 @@
 #define CS 26
 #define DS 27
 
+#define REG_NAMES                                                             \
+    {                                                                        \
+        "IP", "OPC", "OP1", "OP2", "LAR", "MAR", "MBR", "-", "-", "-",       \
+            "EAX", "EBX", "ECX", "EDX", "EEX", "EFX", "AC", "CC", "-", "-",   \
+            "-", "-", "-", "-", "-", "-", "CS", "DS", "-", "-", "-", "-"     \
+    }
+
 typedef struct {
     char *name;
     int32_t value;
