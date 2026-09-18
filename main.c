@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
                                    tipeB, valueB);
 
         // pasamos a la sig instruccion
-        machine.registers[IP].value += 1 + tipeA + tipeB;
+        machine.registers[IP].value += instrLen;
 
         // if (opIndex != -1)
         //     printf("OPERACION: %s\n", operators[opIndex].name);
