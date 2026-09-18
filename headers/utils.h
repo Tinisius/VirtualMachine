@@ -19,6 +19,8 @@ uint32_t obtainPhysicDirection(type_machine *, int32_t);
 
 int inDS(int32_t physicDir, type_machine *);
 
+void uploadcc(int32_t valA, int32_t valB, int32_t result, type_machine *m, int op_mode);
+
 int memWrite(int32_t, int16_t, type_machine *, int32_t, int *);
 
 void memRead(int32_t, int16_t, type_machine *, int32_t *, int *);

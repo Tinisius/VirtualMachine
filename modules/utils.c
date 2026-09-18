@@ -203,6 +203,33 @@ void setOPValue(uint32_t OP, type_machine *m, int32_t newValue) {
         exit(-1);
 }
 
+void uploadcc(int32_t valA, int32_t valB, int32_t result, type_machine *m, int op_mode) {
+    m->registers[CC].value = 0;
+    if (result == 0) 
+        m->registers[CC].value |= 0x00000001; 
+    
+    if (result & 0x80000000) 
+        m->registers[CC].value |= 0x00000002;
+    
+    if (op_mode == 1) { 
+        if ((uint32_t)result < (uint32_t)valA) 
+            m->registers[CC].value |= 0x00000004;
+        
+        if (((valA & 0x80000000) == (valB & 0x80000000)) && ((valA & 0x80000000) != (result & 0x80000000))) 
+            m->registers[CC].value |= 0x00000008;
+        
+    } 
+    else 
+        if (op_mode == 2) { 
+            if ((uint32_t)valA < (uint32_t)valB) {
+                m->registers[CC].value |= 0x00000004; 
+            }
+        if (((valA & 0x80000000) != (valB & 0x80000000)) && ((valA & 0x80000000) != (result & 0x80000000)))
+            m->registers[CC].value |= 0x00000008; 
+        
+    }
+   
+}
 int32_t arShiftRight(int32_t value, int32_t shift) {
     if ((value >> 31) & 0b1) { // si es negativo
         for (int i = 0; i < shift; i++) {
