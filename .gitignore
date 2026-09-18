@@ -1,3 +1,4 @@
 .vscode
-./vmt
+vmt
 .clang-format
+./versions/MV.exe
