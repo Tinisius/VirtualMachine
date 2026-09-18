@@ -85,11 +85,14 @@ int inMem(int32_t physicDir) { return physicDir >= 0 && physicDir < N_MEM; }
 
 int memWrite(int32_t logicDir, int16_t size, type_machine *m, int32_t value, int *error) {
     int32_t dir = obtainPhysicDirection(m, logicDir);
+    m->registers[MAR].value = (size << 16) | (dir & 0xFFFF);
     for (int i = 0; i < size; i++) {
         if (inDS(dir + i, m)) {
-            m->memory[dir + i] = value >> (size - i - 1) * 8 & 0xFF; // escribe EL BYTE EN MEM
-        } else
+            m->memory[dir + i] = ((uint32_t)value >> ((size - i - 1) * 8)) & 0xFF; 
+        } else {
+            *error = 1; 
             return 1;
+        }
     }
     return 0;
 }
@@ -98,7 +101,7 @@ void memReadValidate(int32_t logicDir,type_machine *m,int size){
     uint16_t physical = obtainPhysicDirection(m,logicDir);
     m->registers[LAR].value = logicDir;
     m->registers[MAR].value = size << 16;
-    m->registers[MAR].value = m->registers[MAR].value | physical;
+    m->registers[MAR].value = m->registers[MAR].value | physical; //usar inDS luego
     uint32_t table = m->segments[highest(logicDir)];
     uint16_t limitSeg = highest(table) + lowest(table); //limite de segmento es base y tamaño del mismo
     uint16_t limitAccess = physical + size;
@@ -185,7 +188,10 @@ void setOPValue(uint32_t OP, type_machine *m, int32_t newValue) {
         m->registers[OP & 0x1F].value = newValue;
     } else {
         if (tipeA == 3) { // op memoria
-            memWrite(getOPLogicAdress(OP, m), 4, m, newValue, &error);
+            uint16_t logic = getOPLogicAdress(OP, m);
+            m->registers[MBR].value = newValue;
+            m->registers[LAR].value = logic;
+            memWrite(logic, 4, m, newValue, &error); 
             if (error) {
                 STOP(0, 0, m);
                 return;
