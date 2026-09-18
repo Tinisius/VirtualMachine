@@ -121,15 +121,35 @@ void ADD(int32_t OPA, int32_t OPB, type_machine *m) {
 }
 
 void SUB(int32_t OPA, int32_t OPB, type_machine *m) {
-    //
+    int32_t valA = getOPValue(OPA, m);
+    int32_t valB = getOPValue(OPB, m);
+    int32_t resultado = valA - valB;
+    setOPValue(OPA, m, resultado);
+    uploadcc(valA, valB, resultado, m, 2); 
 }
 
+
 void MUL(int32_t OPA, int32_t OPB, type_machine *m) {
-    //
+    int32_t valA = getOPValue(OPA, m);
+    int32_t valB = getOPValue(OPB, m);
+    int32_t resultado = valA * valB;
+    setOPValue(OPA, m, resultado);
+    
+    uploadcc(valA, valB, resultado, m, 0);
 }
 
 void DIV(int32_t OPA, int32_t OPB, type_machine *m) {
-    //
+    int32_t valA = getOPValue(OPA, m);
+    int32_t valB = getOPValue(OPB, m);
+    
+    if (valB == 0) {
+        printf("ERROR: porq queres divir por 0?\n");
+        STOP(0, 0, m); 
+        return;
+    }
+    int32_t resultado = valA / valB;
+    setOPValue(OPA, m, resultado);
+    uploadcc(valA, valB, resultado, m, 0);
 }
 
 void CMP(int32_t OPA, int32_t OPB, type_machine *m) {
@@ -137,7 +157,12 @@ void CMP(int32_t OPA, int32_t OPB, type_machine *m) {
 }
 
 void AND(int32_t OPA, int32_t OPB, type_machine *m) {
-    //
+    int32_t valA = getOPValue(OPA, m);
+    int32_t valB = getOPValue(OPB, m);
+    int32_t resultado = valA & valB;
+    setOPValue(OPA, m, resultado);
+    
+    uploadcc(valA, valB, resultado, m, 0);
 }
 
 void OR(int32_t OPA, int32_t OPB, type_machine *m) {
@@ -145,7 +170,12 @@ void OR(int32_t OPA, int32_t OPB, type_machine *m) {
 }
 
 void XOR(int32_t OPA, int32_t OPB, type_machine *m) {
-    //
+    int32_t valA = getOPValue(OPA, m);
+    int32_t valB = getOPValue(OPB, m);
+    int32_t resultado = valA ^ valB;
+    setOPValue(OPA, m, resultado);
+
+    uploadcc(valA, valB, resultado, m, 0);
 }
 
 void SWAP(int32_t OPA, int32_t OPB, type_machine *m) {
