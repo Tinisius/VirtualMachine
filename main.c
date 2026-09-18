@@ -8,7 +8,7 @@
 int main(int argc, char *argv[]) {
     type_machine machine;
     uint16_t cs_size;
-    operatorASM operators[N_OP] = OPERATORS;
+    operatorASM  operators[N_OP] = OPERATORS;
 
     int error = 0;
     int32_t valueA, valueB, instruction;
@@ -41,8 +41,7 @@ int main(int argc, char *argv[]) {
         // leemos OPB y guardamos
         int32_t logDirB = machine.registers[IP].value + 1;
         memRead(logDirB, tipeB, &machine, &valueB, &error);
-        machine.registers[OP2].value =
-            ((int32_t)tipeB << 24) | (valueB & 0x00FFFFFF);
+        machine.registers[OP2].value = ((int32_t)tipeB << 24) | (valueB & 0x00FFFFFF);
 
         if (tipeA > 0) {
             // leemos OPA y guardamos

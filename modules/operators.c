@@ -106,7 +106,10 @@ void NOT(int32_t OPA, int32_t OPB, type_machine *m) {
 
 void STOP(int32_t OPA, int32_t OPB, type_machine *m) { m->registers[IP].value = 0xFFFFFFFF; }
 
-void MOV(int32_t OPA, int32_t OPB, type_machine *m) {}
+void MOV(int32_t OPA, int32_t OPB, type_machine *m) {
+    setOPValue(OPA,m,getOPValue(OPB,m));
+    uploadcc();
+}
 
 void ADD(int32_t OPA, int32_t OPB, type_machine *m) {
     //

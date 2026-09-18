@@ -81,7 +81,7 @@ int inDS(int32_t physicDir, type_machine *m) {
     return physicDir >= base && physicDir < base + size;
 }
 
-int inMem(int32_t physicDir) { return 0 <= physicDir && physicDir < N_MEM; }
+int inMem(int32_t physicDir) { return physicDir >= 0 && physicDir < N_MEM; }
 
 int memWrite(int32_t logicDir, int16_t size, type_machine *m, int32_t value, int *error) {
     int32_t dir = obtainPhysicDirection(m, logicDir);
@@ -93,6 +93,27 @@ int memWrite(int32_t logicDir, int16_t size, type_machine *m, int32_t value, int
     }
     return 0;
 }
+
+void memReadValidate(int32_t logicDir,type_machine *m,int size){
+    uint16_t physical = obtainPhysicDirection(m,logicDir);
+    m->registers[LAR].value = logicDir;
+    m->registers[MAR].value = size << 16;
+    m->registers[MAR].value = m->registers[MAR].value | physical;
+    uint32_t table = m->segments[highest(logicDir)];
+    uint16_t limitSeg = highest(table) + lowest(table); //limite de segmento es base y tamaño del mismo
+    uint16_t limitAccess = physical + size;
+    if( highest(table) <= physical && limitSeg >= limitAccess ){ //controlo que esta en el DS 
+        uint32_t data = 0;
+            for (int i = 0; i < size; i++)
+            data |= ((uint32_t)(uint8_t)m->memory[physical + i]) << ((size - i - 1) * 8);
+        m->registers[MBR].value = data;
+    }
+    else{
+        printf("ERROR: FALLO DE SEGMENTO");
+        exit(-1);
+    }
+}
+
 
 void memRead(int32_t logicDir, int16_t size, type_machine *m, int32_t *value, int *error) {
     int32_t dir = obtainPhysicDirection(m, logicDir);
@@ -124,16 +145,21 @@ int overflowCC(uint32_t cc) { return ((cc << 3) >> 31) & 0x01; }
 
 uint32_t getOPValue(uint32_t op, type_machine *m) {
     uint8_t type_op = getOpType(op);
-    uint32_t value = op & 0x0000FFFF;
+    int32_t value = op & 0x00FFFFFF; 
     int error;
 
     if (type_op != 2) {
-        if (type_op == 3)
-            memRead(getOPLogicAdress(op, m), 4, m, &value, &error);
-        else if (op & 0x1F >= 0 && op & 0x1F < N_REG)
-            value = m->registers[op & 0x1F].value;
-        else
-            error = 1;
+        if (type_op == 3){
+            memReadValidate(getOPLogicAdress(op, m),m,4); //----anteriormente memread (sigue existiendo igual)
+            value = m->registers[MBR].value;
+        }
+        else{
+            uint8_t reg = op & 0x1F; 
+             if (reg >= 0 && reg < N_REG) //no hace falta q maneje si esta en un registro 
+                value = m->registers[reg].value;
+            else
+                error = 1;
+        }
     }
     if (error)
         exit(-1);
@@ -144,8 +170,8 @@ uint8_t getOpType(uint32_t op) { return (uint8_t)((op >> 24) & 0x00000003); }
 
 uint32_t getOPLogicAdress(uint32_t op, type_machine *m) {
     uint32_t adress = m->registers[op & 0x1F].value; // EJ: DS = 0001 0000 0000 0000
-    if (getOpType(op) == 3) {
-        adress += (op >> 8) & 0xFFFF;
+    if (getOpType(op) == 3) {                        // el DS es  00 01 00 00
+        adress += (op >> 8) & 0xFFFF;                
     }
 
     return adress;

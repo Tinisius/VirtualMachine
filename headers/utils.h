@@ -25,6 +25,8 @@ void memRead(int32_t, int16_t, type_machine *, int32_t *, int *);
 
 void printBin(int8_t);
 
+void memReadValidate(int32_t logicDir,type_machine *m,int size);
+
 uint32_t getOPValue(uint32_t op, type_machine *m);
 
 uint32_t getOPLogicAdress(uint32_t op, type_machine *m);
