@@ -113,7 +113,11 @@ void MOV(int32_t OPA, int32_t OPB, type_machine *m) {
 }
 
 void ADD(int32_t OPA, int32_t OPB, type_machine *m) {
-    
+    int32_t valA = getOPValue(OPA, m);
+    int32_t valB = getOPValue(OPB, m);
+    int32_t resultado = valA + valB;
+    setOPValue(OPA, m, resultado);
+    uploadcc(valA, valB, resultado, m, 1);
 }
 
 void SUB(int32_t OPA, int32_t OPB, type_machine *m) {
