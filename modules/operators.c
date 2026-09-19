@@ -2,6 +2,7 @@
 #include "../headers/utils.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 void STOP(int32_t OPA, int32_t OPB, type_machine *m);
 

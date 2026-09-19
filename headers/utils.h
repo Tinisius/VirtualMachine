@@ -27,6 +27,8 @@ void memRead(int32_t, int16_t, type_machine *, int32_t *, int *);
 
 void printBin(int8_t);
 
+int32_t arShiftRight(int32_t value, int32_t shift);
+
 void memReadValidate(int32_t logicDir,type_machine *m,int size);
 
 uint32_t getOPValue(uint32_t op, type_machine *m);
