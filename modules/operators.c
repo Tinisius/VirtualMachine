@@ -9,15 +9,15 @@ void STOP(int32_t OPA, int32_t OPB, type_machine *m);
 void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
 
     int32_t v_EDX =
-        m->registers[27]
+        m->registers[EDX]
             .value; // m->registers[EDX].value; // posicion de memoria
-    int32_t v_ECX = 0x00040002; // m->registers[ECX].value; // cant - tam
+    int32_t v_ECX =
+        m->registers[ECX].value; // m->registers[ECX].value; // cant - tam
     int32_t v_EAX = m->registers[EAX].value; // modo de lectura
 
     int32_t value;
     int16_t size = highest(v_ECX);
     int16_t numsAmount = lowest(v_ECX);
-
     int error = 0;
     int32_t valueB = OPB & 0xFFFFFF;
 
@@ -25,7 +25,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
         for (int i = 0; i < numsAmount; i++) { // realiza N lecturas
             int32_t logicAdr = v_EDX + i * size;
             printf("\n[%04X]:", obtainPhysicAdr(m, logicAdr));
-            if (scanf("%d", &value) != 1) {
+            if (scanf(" %d", &value) != 1) {
                 printf("Entrada invalida\n");
                 STOP(0, 0, m);
                 break;
