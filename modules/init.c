@@ -31,8 +31,10 @@ void addSegment(int32_t TBS[], uint8_t pos, uint16_t size) {
             last_size = TBS[pos - 1] & 0x0000FFFF;
         // verificar que entre en memoria?
         TBS[pos] = (int32_t)(last_size << 16) | size;
-    } else
+    } else {
+        printf("ERROR AL AGREGAR SEGMENTO");
         exit(-1);
+    }
 }
 
 void readHeader(char route[], uint16_t *code_size, int8_t *res) {
@@ -71,15 +73,14 @@ void uploadMem(char *argv[], int8_t memory[], uint16_t *cs_size, int32_t cs) {
     if (res) {
         fseek(arch, N_HEADER, SEEK_SET);
 
-        // aca faltaria inicializar CS
         fread(memory + cs, 1, code_size,
               arch); // guarda en memoria todo el code segment
         fclose(arch);
 
-        for (int i = 0; i < code_size; i++) {
-            printBin(memory[i]);
-            printf("  (%02x)", (uint8_t)memory[i]);
-            printf("\n");
-        }
+        // for (int i = 0; i < code_size; i++) {
+        //     printBin(memory[i]);
+        //     printf("  (%02x)", (uint8_t)memory[i]);
+        //     printf("\n");
+        // }
     }
 }

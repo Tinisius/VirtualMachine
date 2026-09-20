@@ -32,8 +32,8 @@ int main(int argc, char *argv[]) {
         instruction = machine.registers[MBR].value;
 
         // separamos tipos y cod operacion
-        uint8_t tipeB = (instruction >> 6) & 0x03;
-        uint8_t tipeA = (instruction >> 4) & 0x03;
+        uint8_t typeB = (instruction >> 6) & 0x03;
+        uint8_t typeA = (instruction >> 4) & 0x03;
         uint8_t opC = instruction & 0x1F;
 
         // guardamos cod en OPC (REGISTRO)
@@ -46,25 +46,24 @@ int main(int argc, char *argv[]) {
 
         // leemos OPB y guardamos
         int32_t logAdrB = machine.registers[IP].value + 1;
-        memRead(logAdrB, tipeB, &machine);
+        memRead(logAdrB, typeB, &machine);
         valueB = machine.registers[MBR].value;
         machine.registers[OP2].value =
-            ((int32_t)tipeB << 24) | (valueB & 0x00FFFFFF);
+            ((int32_t)typeB << 24) | (valueB & 0x00FFFFFF);
 
-        if (tipeA > 0) {
+        if (typeA > 0) {
             // leemos OPA y guardamos
-            int32_t logAdrA = logAdrB + tipeB;
-            memRead(logAdrA, tipeA, &machine);
+            int32_t logAdrA = logAdrB + typeB;
+            memRead(logAdrA, typeA, &machine);
             valueA = machine.registers[MBR].value;
             machine.registers[OP1].value =
-                ((int32_t)tipeA << 24) | (valueA & 0x00FFFFFF);
+                ((int32_t)typeA << 24) | (valueA & 0x00FFFFFF);
         }
-        int instrLen = 1 + tipeA + tipeB;
-        int32_t physicDir = obtainPhysicDirection(&machine, instrLogDir);
+        int instrLen = 1 + typeA + typeB;
         if (disassembler)
-            disassembleInstruction(&machine, physicDir, instrLen,
-                                   operators[opIndex].name, tipeA, valueA,
-                                   tipeB, valueB);
+            disassembleInstruction(
+                &machine, obtainPhysicAdr(&machine, instrLogDir), instrLen,
+                operators[opIndex].name, typeA, valueA, typeB, valueB);
 
         // pasamos a la sig instruccion
         machine.registers[IP].value += instrLen;
@@ -72,16 +71,18 @@ int main(int argc, char *argv[]) {
         // if (opIndex != -1)
         //     printf("OPERACION: %s\n", operators[opIndex].name);
         // printf("instrucion: %0X\n", instruction);
-        // printf("TIP0_A: %01x TIPO_B: %01x\n", tipeA, tipeB);
+        // printf("TIP0_A: %01x TIPO_B: %01x\n", typeA, typeB);
         // printf("MEM dir: %d \nOPA: %08x OPB: %08x\n",
         //        machine.registers[IP].value, machine.registers[OP1].value,
         //        machine.registers[OP2].value);
 
         // para operaciones de un operado
-        if (tipeA == 0) {
-            tipeA = tipeB;
+
+        // al pedo, nunca asigna a OP1 ni OP2
+        if (typeA == 0) {
+            typeA = typeB;
             valueA = valueB;
-            tipeB = valueB = 0;
+            typeB = valueB = 0;
         }
 
         // invocamos la operacion
@@ -91,14 +92,11 @@ int main(int argc, char *argv[]) {
         printf("\n");
     }
 
-    for (int i = 0; i < 256; i++) {
-        printf("%d  ", i);
-        printBin(machine.memory[i]);
-        printf("\n");
-    }
-
-    // printf("%0X %0X_opa %0X_opb\n",machine.registers[IP].value,
-    // machine.registers[OP1].value,machine.registers[OP2].value );
+    // for (int i = 0; i < 256; i++) {
+    //     printf("%d  ", i);
+    //     printBin(machine.memory[i]);
+    //     printf("\n");
+    // }
 
     return 0;
 }
