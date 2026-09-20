@@ -43,7 +43,7 @@ int corresponds(type_machine *m) {
     }
 }
 
-uint32_t obtainPhysicDirection(type_machine *m, int32_t logicDir) {
+uint16_t obtainPhysicDirection(type_machine *m, int32_t logicDir) {
     uint16_t segmIndex = highest(logicDir);
     if (segmIndex < N_SEG) {
         uint16_t offset = lowest(logicDir);
@@ -78,31 +78,32 @@ int memWrite(int32_t logicDir, int16_t size, type_machine *m, int32_t value, int
     return 0;
 }
 
-void memReadValidate(int32_t logicDir, type_machine *m, int size) {
-    uint16_t physical = obtainPhysicDirection(m, logicDir);
+void memReadValidate(int32_t logicDir, int16_t size, type_machine *m) {
+    uint16_t physicalAdr = obtainPhysicDirection(m, logicDir);
+
     m->registers[LAR].value = logicDir;
     m->registers[MAR].value = size << 16;
-    m->registers[MAR].value = m->registers[MAR].value | physical; // usar inDS luego
-    uint32_t table = m->segments[highest(logicDir)];
-    uint16_t limitSeg = highest(table) + lowest(table); // limite de segmento es base y tamaño del mismo
-    uint16_t limitAccess = physical + size;
-    if (highest(table) <= physical && limitSeg >= limitAccess) { // controlo que esta en el DS
-        uint32_t data = 0;
-        for (int i = 0; i < size; i++)
-            data |= ((uint32_t)(uint8_t)m->memory[physical + i]) << ((size - i - 1) * 8);
-        m->registers[MBR].value = data;
-    } else {
-        printf("ERROR: FALLO DE SEGMENTO");
-        exit(-1);
+    m->registers[MAR].value = m->registers[MAR].value | physicalAdr; // usar inDS luego
+
+    uint32_t data = 0;
+    for (int i = 0; i < size; i++) {
+        if (inDS(physicalAdr, m)) { // controlo que esta en el DS
+            data |= (m->memory[physicalAdr + i]) << ((size - i - 1) * 8);
+        } else {
+            printf("ERROR: FALLO DE SEGMENTO");
+            exit(-1);
+        }
     }
+    m->registers[MBR].value = data;
 }
 
 void memRead(int32_t logicDir, int16_t size, type_machine *m, int32_t *value, int *error) {
-    int32_t dir = obtainPhysicDirection(m, logicDir);
+    int32_t physicalAdr = obtainPhysicDirection(m, logicDir);
+
     *value = 0;
-    for (int i = size - 1; i >= 0; i--) {
-        if (inMem(dir + i))
-            *value += m->memory[dir + i] << (size - i - 1) * 8;
+    for (int i = 0; i < size; i++) {
+        if (inMem(physicalAdr + i))
+            *value |= m->memory[physicalAdr + i] << ((size - i - 1) * 8);
         else {
             *error = 1;
             return;
@@ -132,7 +133,7 @@ uint32_t getOPValue(uint32_t op, type_machine *m) {
 
     if (type_op != 2) {
         if (type_op == 3) {
-            memReadValidate(getOPLogicAdress(op, m), m, 4); //----anteriormente memread (sigue existiendo igual)
+            memReadValidate(getOPLogicAdress(op, m), 4, m); //----anteriormente memread (sigue existiendo igual)
             value = m->registers[MBR].value;
         } else {
             uint8_t reg = op & 0x1F;
