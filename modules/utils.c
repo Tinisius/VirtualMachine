@@ -37,16 +37,16 @@ int corresponds(type_machine *m) {
         uint32_t table = m->segments[highest(m->registers[CS].value)];
         uint16_t base = highest(table);
         uint16_t size = lowest(table);
-        int16_t ipPhysicDir = obtainPhysicDirection(m, m->registers[IP].value);
-        ipPhysicDir -= base;
-        return ipPhysicDir >= 0 && ipPhysicDir < size;
+        int16_t ipPhysicAdr = obtainPhysicAdr(m, m->registers[IP].value);
+        ipPhysicAdr -= base;
+        return ipPhysicAdr >= 0 && ipPhysicAdr < size;
     }
 }
 
-uint16_t obtainPhysicDirection(type_machine *m, int32_t logicDir) {
-    uint16_t segmIndex = highest(logicDir);
+uint16_t obtainPhysicAdr(type_machine *m, int32_t logicAdr) {
+    uint16_t segmIndex = highest(logicAdr);
     if (segmIndex < N_SEG) {
-        uint16_t offset = lowest(logicDir);
+        uint16_t offset = lowest(logicAdr);
         uint16_t base = highest(m->segments[segmIndex]);
         return base + offset;
     } else {
@@ -55,21 +55,21 @@ uint16_t obtainPhysicDirection(type_machine *m, int32_t logicDir) {
     }
 }
 
-int inDS(int32_t physicDir, type_machine *m) {
+int inDS(int32_t physicAdr, type_machine *m) {
     int32_t base = highest(m->segments[1]);
     int32_t size = lowest(m->segments[1]);
 
-    return physicDir >= base && physicDir < base + size;
+    return physicAdr >= base && physicAdr < base + size;
 }
 
-int inMem(int32_t physicDir) { return physicDir >= 0 && physicDir < N_MEM; }
+int inMem(int32_t physicAdr) { return physicAdr >= 0 && physicAdr < N_MEM; }
 
-int memWrite(int32_t logicDir, int16_t size, type_machine *m, int32_t value, int *error) {
-    int32_t dir = obtainPhysicDirection(m, logicDir);
-    m->registers[MAR].value = (size << 16) | (dir & 0xFFFF);
+int memWrite(int32_t logicAdr, int16_t size, type_machine *m, int32_t value, int *error) {
+    int32_t Adr = obtainPhysicAdr(m, logicAdr);
+    m->registers[MAR].value = (size << 16) | (Adr & 0xFFFF);
     for (int i = 0; i < size; i++) {
-        if (inDS(dir + i, m)) {
-            m->memory[dir + i] = ((uint32_t)value >> ((size - i - 1) * 8)) & 0xFF;
+        if (inDS(Adr + i, m)) {
+            m->memory[Adr + i] = ((uint32_t)value >> ((size - i - 1) * 8)) & 0xFF;
         } else {
             *error = 1;
             return 1;
@@ -78,10 +78,10 @@ int memWrite(int32_t logicDir, int16_t size, type_machine *m, int32_t value, int
     return 0;
 }
 
-void memReadValidate(int32_t logicDir, int16_t size, type_machine *m) {
-    uint16_t physicalAdr = obtainPhysicDirection(m, logicDir);
+void memReadValidate(int32_t logicAdr, int16_t size, type_machine *m) {
+    uint16_t physicalAdr = obtainPhysicAdr(m, logicAdr);
 
-    m->registers[LAR].value = logicDir;
+    m->registers[LAR].value = logicAdr;
     m->registers[MAR].value = size << 16;
     m->registers[MAR].value = m->registers[MAR].value | physicalAdr; // usar inDS luego
 
@@ -97,8 +97,8 @@ void memReadValidate(int32_t logicDir, int16_t size, type_machine *m) {
     m->registers[MBR].value = data;
 }
 
-void memRead(int32_t logicDir, int16_t size, type_machine *m, int32_t *value, int *error) {
-    int32_t physicalAdr = obtainPhysicDirection(m, logicDir);
+void memRead(int32_t logicAdr, int16_t size, type_machine *m, int32_t *value, int *error) {
+    int32_t physicalAdr = obtainPhysicAdr(m, logicAdr);
 
     *value = 0;
     for (int i = 0; i < size; i++) {

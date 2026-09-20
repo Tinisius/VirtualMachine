@@ -13,9 +13,9 @@ int searchOperatorByCode(operatorASM[], int16_t);
 
 int corresponds(type_machine *);
 
-uint16_t obtainPhysicDirection(type_machine *, int32_t);
+uint16_t obtainPhysicAdr(type_machine *, int32_t);
 
-int inDS(int32_t physicDir, type_machine *);
+int inDS(int32_t physicAdr, type_machine *);
 
 void uploadcc(int32_t valA, int32_t valB, int32_t result, type_machine *m, int op_mode);
 
@@ -27,7 +27,7 @@ void printBin(int8_t);
 
 int32_t arShiftRight(int32_t value, int32_t shift);
 
-void memReadValidate(int32_t logicDir, int16_t size, type_machine *m);
+void memReadValidate(int32_t logicAdr, int16_t size, type_machine *m);
 
 uint32_t getOPValue(uint32_t op, type_machine *m);
 

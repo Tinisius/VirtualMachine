@@ -21,8 +21,8 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
 
     if (valueB == 1) {                         // READ / LECTURA (escribe en memoria)
         for (int i = 0; i < numsAmount; i++) { // realiza N lecturas
-            int32_t logicDir = v_EDX + i * size;
-            printf("[%04X]:", obtainPhysicDirection(m, logicDir));
+            int32_t logicAdr = v_EDX + i * size;
+            printf("[%04X]:", obtainPhysicAdr(m, logicAdr));
             if (scanf("%d", &value) != 1) {
                 printf("Entrada invalida\n");
                 STOP(0, 0, m);
@@ -31,7 +31,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
             // trunca value en funcion del size, (1 << 8) - 1 es 0xFF
             value = value & ((1ULL << (size * 8)) - 1);
 
-            memWrite(logicDir, size, m, value, &error); // escribe en memoria y valida
+            memWrite(logicAdr, size, m, value, &error); // escribe en memoria y valida
             if (error) {
                 printf("error de memoria");
                 STOP(0, 0, m);
@@ -42,9 +42,9 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
         }
     } else if (valueB == 2) { // WRITE / ESCRITURA (lee de memoria)
         for (int i = 0; i < numsAmount; i++) {
-            int32_t logicDir = v_EDX + i * size;
-            printf("[%04X]", obtainPhysicDirection(m, logicDir));
-            memRead(logicDir, size, m, &value, &error); // lee de memoria y valida
+            int32_t logicAdr = v_EDX + i * size;
+            printf("[%04X]", obtainPhysicAdr(m, logicAdr));
+            memRead(logicAdr, size, m, &value, &error); // lee de memoria y valida
             printf(" %d", value);
             if (error) {
                 printf("error de memoria");
@@ -108,13 +108,12 @@ void NOT(int32_t OPA, int32_t OPB, type_machine *m) {
     uploadcc(valA, 0, resultado, m, 0);
 }
 
-
 void STOP(int32_t OPA, int32_t OPB, type_machine *m) { m->registers[IP].value = 0xFFFFFFFF; }
 
 void MOV(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t dato = getOPValue(OPB, m);
-    setOPValue(OPA,m,dato);
-    uploadcc(0,0,dato,m,0);
+    setOPValue(OPA, m, dato);
+    uploadcc(0, 0, dato, m, 0);
 }
 
 void ADD(int32_t OPA, int32_t OPB, type_machine *m) {
@@ -130,26 +129,25 @@ void SUB(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t valB = getOPValue(OPB, m);
     int32_t resultado = valA - valB;
     setOPValue(OPA, m, resultado);
-    uploadcc(valA, valB, resultado, m, 2); 
+    uploadcc(valA, valB, resultado, m, 2);
 }
-
 
 void MUL(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t valA = getOPValue(OPA, m);
     int32_t valB = getOPValue(OPB, m);
     int32_t resultado = valA * valB;
     setOPValue(OPA, m, resultado);
-    
+
     uploadcc(valA, valB, resultado, m, 0);
 }
 
 void DIV(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t valA = getOPValue(OPA, m);
     int32_t valB = getOPValue(OPB, m);
-    
+
     if (valB == 0) {
         printf("ERROR: porq queres divir por 0?\n");
-        STOP(0, 0, m); 
+        STOP(0, 0, m);
         return;
     }
     int32_t resultado = valA / valB;
