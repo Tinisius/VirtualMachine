@@ -12,9 +12,9 @@
 #define N_MEM 16384
 #define N_SEG 8
 #define N_REG 32
-#define N_OP 28
+#define N_OP 32
 
-//registros
+// registros
 #define IP 0
 #define OPC 1
 #define OP1 2
@@ -33,12 +33,8 @@
 #define CS 26
 #define DS 27
 
-#define REG_NAMES                                                             \
-    {                                                                        \
-        "IP", "OPC", "OP1", "OP2", "LAR", "MAR", "MBR", "-", "-", "-",       \
-            "EAX", "EBX", "ECX", "EDX", "EEX", "EFX", "AC", "CC", "-", "-",   \
-            "-", "-", "-", "-", "-", "-", "CS", "DS", "-", "-", "-", "-"     \
-    }
+#define REG_NAMES                                                                                                                                                                                      \
+    {"IP", "OPC", "OP1", "OP2", "LAR", "MAR", "MBR", "-", "-", "-", "EAX", "EBX", "ECX", "EDX", "EEX", "EFX", "AC", "CC", "-", "-", "-", "-", "-", "-", "-", "-", "CS", "DS", "-", "-", "-", "-"}
 
 typedef struct {
     char *name;
