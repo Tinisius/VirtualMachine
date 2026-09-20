@@ -13,7 +13,7 @@ int searchOperatorByCode(operatorASM[], int16_t);
 
 int corresponds(type_machine *);
 
-uint32_t obtainPhysicDirection(type_machine *, int32_t);
+uint16_t obtainPhysicDirection(type_machine *, int32_t);
 
 int inDS(int32_t physicDir, type_machine *);
 
