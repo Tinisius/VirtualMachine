@@ -23,7 +23,8 @@ int main(int argc, char *argv[]) {
     while (corresponds(&machine)) { // analiza si corresponde leer/seguir
                                     // leyendo las instruciones
         // leemos la instruccion
-        memRead(machine.registers[IP].value, 1, &machine, &instruction, &error);
+        memRead(machine.registers[IP].value, 1, &machine);
+        instruction = machine.registers[MBR].value;
 
         // separamos tipos y cod operacion
         uint8_t tipeB = (instruction >> 6) & 0x03;
@@ -40,13 +41,15 @@ int main(int argc, char *argv[]) {
 
         // leemos OPB y guardamos
         int32_t logAdrB = machine.registers[IP].value + 1;
-        memRead(logAdrB, tipeB, &machine, &valueB, &error);
+        memRead(logAdrB, tipeB, &machine);
+        valueB = machine.registers[MBR].value;
         machine.registers[OP2].value = ((int32_t)tipeB << 24) | (valueB & 0x00FFFFFF);
 
         if (tipeA > 0) {
             // leemos OPA y guardamos
             int32_t logAdrA = logAdrB + tipeB;
-            memRead(logAdrA, tipeA, &machine, &valueA, &error);
+            memRead(logAdrA, tipeA, &machine);
+            valueA = machine.registers[MBR].value;
             machine.registers[OP1].value = ((int32_t)tipeA << 24) | (valueA & 0x00FFFFFF);
         }
         // pasamos a la sig instruccion

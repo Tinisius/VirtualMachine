@@ -44,7 +44,8 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
         for (int i = 0; i < numsAmount; i++) {
             int32_t logicAdr = v_EDX + i * size;
             printf("[%04X]", obtainPhysicAdr(m, logicAdr));
-            memRead(logicAdr, size, m, &value, &error); // lee de memoria y valida
+            memRead(logicAdr, size, m); // lee de memoria y valida
+            value = m->registers[MBR].value;
             printf(" %d", value);
             if (error) {
                 printf("error de memoria");

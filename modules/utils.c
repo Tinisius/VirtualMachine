@@ -65,11 +65,15 @@ int inDS(int32_t physicAdr, type_machine *m) {
 int inMem(int32_t physicAdr) { return physicAdr >= 0 && physicAdr < N_MEM; }
 
 int memWrite(int32_t logicAdr, int16_t size, type_machine *m, int32_t value, int *error) {
-    int32_t Adr = obtainPhysicAdr(m, logicAdr);
-    m->registers[MAR].value = (size << 16) | (Adr & 0xFFFF);
+    int32_t physicalAdr = obtainPhysicAdr(m, logicAdr);
+
+    m->registers[LAR].value = logicAdr;
+    m->registers[MAR].value = (size << 16) | (physicalAdr & 0xFFFF);
+    m->registers[MBR].value = value;
+
     for (int i = 0; i < size; i++) {
-        if (inDS(Adr + i, m)) {
-            m->memory[Adr + i] = ((uint32_t)value >> ((size - i - 1) * 8)) & 0xFF;
+        if (inDS(physicalAdr + i, m)) {
+            m->memory[physicalAdr + i] = ((uint32_t)value >> ((size - i - 1) * 8)) & 0xFF;
         } else {
             *error = 1;
             return 1;
@@ -78,12 +82,11 @@ int memWrite(int32_t logicAdr, int16_t size, type_machine *m, int32_t value, int
     return 0;
 }
 
-void memReadValidate(int32_t logicAdr, int16_t size, type_machine *m) {
+void memRead(int32_t logicAdr, int16_t size, type_machine *m) {
     uint16_t physicalAdr = obtainPhysicAdr(m, logicAdr);
 
     m->registers[LAR].value = logicAdr;
-    m->registers[MAR].value = size << 16;
-    m->registers[MAR].value = m->registers[MAR].value | physicalAdr; // usar inDS luego
+    m->registers[MAR].value = (size << 16) | (physicalAdr & 0xFFFF);
 
     uint32_t data = 0;
     for (int i = 0; i < size; i++) {
@@ -95,20 +98,6 @@ void memReadValidate(int32_t logicAdr, int16_t size, type_machine *m) {
         }
     }
     m->registers[MBR].value = data;
-}
-
-void memRead(int32_t logicAdr, int16_t size, type_machine *m, int32_t *value, int *error) {
-    int32_t physicalAdr = obtainPhysicAdr(m, logicAdr);
-
-    *value = 0;
-    for (int i = 0; i < size; i++) {
-        if (inMem(physicalAdr + i))
-            *value |= m->memory[physicalAdr + i] << ((size - i - 1) * 8);
-        else {
-            *error = 1;
-            return;
-        }
-    }
 }
 
 void printBin(int8_t byte) {
@@ -133,7 +122,7 @@ uint32_t getOPValue(uint32_t op, type_machine *m) {
 
     if (type_op != 2) {
         if (type_op == 3) {
-            memReadValidate(getOPLogicAdress(op, m), 4, m); //----anteriormente memread (sigue existiendo igual)
+            memRead(getOPLogicAdress(op, m), 4, m);
             value = m->registers[MBR].value;
         } else {
             uint8_t reg = op & 0x1F;

@@ -21,13 +21,11 @@ void uploadcc(int32_t valA, int32_t valB, int32_t result, type_machine *m, int o
 
 int memWrite(int32_t, int16_t, type_machine *, int32_t, int *);
 
-void memRead(int32_t, int16_t, type_machine *, int32_t *, int *);
+void memRead(int32_t, int16_t, type_machine *);
 
 void printBin(int8_t);
 
 int32_t arShiftRight(int32_t value, int32_t shift);
-
-void memReadValidate(int32_t logicAdr, int16_t size, type_machine *m);
 
 uint32_t getOPValue(uint32_t op, type_machine *m);
 
