@@ -248,7 +248,7 @@ void RND(int32_t OPA, int32_t OPB, type_machine *m) {
     setOPValue(OPA, m, ran);
 }
 
-void TRASH(int32_t, int32_t, type_machine *) {
-    printf("ERROR OPERACION INVALIDA");
+void TRASH(int32_t OPA, int32_t OPB, type_machine *m) {
+    printf("\nERROR OPERACION INVALIDA\n");
     exit(-1);
 }

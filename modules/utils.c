@@ -116,9 +116,10 @@ void memRead(int32_t logicAdr, int16_t size, int32_t segment, type_machine *m) {
 void printBin(int8_t byte) {
     for (int j = 7; j >= 0; j--) {
         printf("%0x ", (byte >> j) & 0b1); // muestra todo el Code Segment
-        if (j == 4)
-            printf(" ");
+        // if (j == 4)
+        //     printf("");
     }
+    printf(" ");
 }
 int negativeCC(uint32_t cc) { return (cc >> 31) & 0x01; }
 

@@ -34,20 +34,9 @@ int main(int argc, char *argv[]) {
         // separamos tipos y cod operacion
         uint8_t typeB = (instruction >> 6) & 0x03;
         uint8_t typeA = (instruction >> 4) & 0x03;
-        int8_t opC = instruction & 0x1F;
+        uint8_t opC = instruction & 0x1F; // al ser unsigned nunca sera <0 y al leer 5 bits nunca será mayor que 32 = N_OP
 
-        // guardamos cod en OPC (REGISTRO)
         machine.registers[OPC].value = opC;
-        // int opIndex = searchOperatorByCode(operators, opC);
-        // if (opIndex == -1) {
-        //     printf("\nOPERACION INVALIDA\n");
-        //     exit(-1);
-        // }
-
-        if (opC < 0 || opC >= N_OP) {
-            printf("ERROR OPERACION INVALIDA");
-            exit(-1);
-        }
 
         // leemos OPB y guardamos
         int32_t logAdrB = machine.registers[IP].value + 1;
@@ -76,7 +65,9 @@ int main(int argc, char *argv[]) {
     }
     // for (int i = 0; i < N_REG; i++) {
     //     printf("%s \t", machine.registers[i].name, machine.registers[i].value);
-    //     printBin(machine.registers[i].value);
+    //     for (int j = 3; j >= 0; j--) {
+    //         printBin(machine.registers[i].value >> (8 * j));
+    //     }
     //     printf("\n");
     // }
     // for (int i = 0; i < 256; i++) {
