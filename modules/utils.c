@@ -55,17 +55,26 @@ uint16_t obtainPhysicAdr(type_machine *m, int32_t logicAdr) {
     }
 }
 
-int inDS(int32_t physicAdr, type_machine *m) {
-    int32_t base = highest(m->segments[1]);
-    int32_t size = lowest(m->segments[1]);
+// segment es el valor del registro de segmento (ej: DS = 0x00010000),
+// el indice en la tabla de segmentos es su parte alta
+int inSegment(int32_t physicAdr, int32_t segment, type_machine *m) {
+    uint16_t segmIndex = highest(segment);
+    if (segmIndex >= N_SEG || segmIndex == -1)
+        return 0;
 
-    return physicAdr >= base && physicAdr < base + size;
+    int32_t base = highest(m->segments[segmIndex]);
+    int32_t size = lowest(m->segments[segmIndex]);
+
+    int result = physicAdr >= base && physicAdr < base + size && physicAdr < N_MEM;
+    if (!result) {
+        printf("\nERROR FALLO DE SEGMENTO\n");
+        exit(-1);
+    }
+
+    return physicAdr >= base && physicAdr < N_MEM && physicAdr < base + size;
 }
 
-int inMem(int32_t physicAdr) { return physicAdr >= 0 && physicAdr < N_MEM; }
-
-int memWrite(int32_t logicAdr, int16_t size, type_machine *m, int32_t value,
-             int *error) {
+int memWrite(int32_t logicAdr, int16_t size, type_machine *m, int32_t value, int *error) {
     int32_t physicalAdr = obtainPhysicAdr(m, logicAdr);
 
     m->registers[LAR].value = logicAdr;
@@ -73,9 +82,8 @@ int memWrite(int32_t logicAdr, int16_t size, type_machine *m, int32_t value,
     m->registers[MBR].value = value;
 
     for (int i = 0; i < size; i++) {
-        if (inDS(physicalAdr + i, m)) {
-            m->memory[physicalAdr + i] =
-                ((uint32_t)value >> ((size - i - 1) * 8)) & 0xFF;
+        if (inSegment(physicalAdr + i, m->registers[DS].value, m)) {
+            m->memory[physicalAdr + i] = ((uint32_t)value >> ((size - i - 1) * 8)) & 0xFF;
         } else {
             *error = 1;
             return 1;
@@ -84,7 +92,7 @@ int memWrite(int32_t logicAdr, int16_t size, type_machine *m, int32_t value,
     return 0;
 }
 
-void memRead(int32_t logicAdr, int16_t size, type_machine *m) {
+void memRead(int32_t logicAdr, int16_t size, int32_t segment, type_machine *m) {
     uint16_t physicalAdr = obtainPhysicAdr(m, logicAdr);
 
     m->registers[LAR].value = logicAdr;
@@ -92,7 +100,10 @@ void memRead(int32_t logicAdr, int16_t size, type_machine *m) {
 
     uint32_t data = 0;
     for (int i = 0; i < size; i++) {
-        if (inMem(physicalAdr)) { // controlo que esta en el DS
+        // Al leer una instruccion segment = el valor guardado en CS
+        // si está leyendo una instrucción no es necesario validar inSegment
+
+        if (segment == m->registers[CS].value || inSegment(physicalAdr + i, segment, m)) { // controlo que este dentro del segmento
             data |= (m->memory[physicalAdr + i]) << ((size - i - 1) * 8);
         } else {
             printf("ERROR: FALLO DE SEGMENTO");
@@ -124,13 +135,12 @@ uint32_t getOPValue(uint32_t op, type_machine *m) {
 
     if (type_op != 2) {
         if (type_op == 3) {
-            memRead(getOPLogicAdress(op, m), 4, m);
+            memRead(getOPLogicAdress(op, m), 4, m->registers[DS].value, m);
             value = m->registers[MBR].value;
 
         } else {
             uint8_t reg = op & 0x1F;
-            if (reg >= 0 &&
-                reg < N_REG) // no hace falta q maneje si esta en un registro
+            if (reg >= 0 && reg < N_REG) // no hace falta q maneje si esta en un registro
                 value = m->registers[reg].value;
             else {
                 printf("ERROR GETOPVALUE");
@@ -145,10 +155,9 @@ uint32_t getOPValue(uint32_t op, type_machine *m) {
 uint8_t getOpType(uint32_t op) { return (uint8_t)((op >> 24) & 0x00000003); }
 
 uint32_t getOPLogicAdress(uint32_t op, type_machine *m) {
-    uint32_t adress =
-        m->registers[op & 0x1F].value;           // EJ: DS = 0001 0000 0000 0000
-    if (getOpType(op) == 3) {                    // el DS es  00 01 00 00
-        adress += (int16_t)((op >> 8) & 0xFFFF); // offset con signo
+    uint32_t adress = m->registers[op & 0x1F].value; // EJ: DS = 0001 0000 0000 0000
+    if (getOpType(op) == 3) {                        // el DS es  00 01 00 00
+        adress += (int16_t)((op >> 8) & 0xFFFF);     // offset con signo
     }
 
     return adress;
@@ -168,8 +177,8 @@ void setOPValue(uint32_t OP, type_machine *m, int32_t newValue) {
             m->registers[LAR].value = logic;
             memWrite(logic, 4, m, newValue, &error);
             if (error) {
-                STOP(0, 0, m);
-                return;
+                printf("\nERROR DE MEMORIA\n");
+                exit(-1);
             }
         } else
             error = 1;
@@ -182,8 +191,7 @@ void setOPValue(uint32_t OP, type_machine *m, int32_t newValue) {
 
 // N, Z, C y V son los bits 31, 30, 29 y 28 del CC (el resto es reservado)
 // op_mode: 0 = ni C ni V, 1 = suma, 2 = resta
-void uploadcc(int32_t valA, int32_t valB, int32_t result, type_machine *m,
-              int op_mode) {
+void uploadcc(int32_t valA, int32_t valB, int32_t result, type_machine *m, int op_mode) {
     m->registers[CC].value = 0;
 
     if (result & 0x80000000) // N: el resultado es negativo
@@ -200,8 +208,7 @@ void uploadcc(int32_t valA, int32_t valB, int32_t result, type_machine *m,
         // V: los operandos tienen igual signo (distinto en la resta) y el
         // resultado sale con el signo contrario
         int igualSigno = (valA & 0x80000000) == (valB & 0x80000000);
-        if ((op_mode == 1 ? igualSigno : !igualSigno) &&
-            ((valA & 0x80000000) != (result & 0x80000000)))
+        if ((op_mode == 1 ? igualSigno : !igualSigno) && ((valA & 0x80000000) != (result & 0x80000000)))
             m->registers[CC].value |= 0x10000000;
     }
 }

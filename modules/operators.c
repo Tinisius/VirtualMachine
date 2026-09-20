@@ -8,11 +8,8 @@ void STOP(int32_t OPA, int32_t OPB, type_machine *m);
 
 void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
 
-    int32_t v_EDX =
-        m->registers[EDX]
-            .value; // m->registers[EDX].value; // posicion de memoria
-    int32_t v_ECX =
-        m->registers[ECX].value; // m->registers[ECX].value; // cant - tam
+    int32_t v_EDX = m->registers[EDX].value; // m->registers[EDX].value; // posicion de memoria
+    int32_t v_ECX = m->registers[ECX].value; // m->registers[ECX].value; // cant - tam
     int32_t v_EAX = m->registers[EAX].value; // modo de lectura
 
     int32_t value;
@@ -21,7 +18,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
     int error = 0;
     int32_t valueB = OPB & 0xFFFFFF;
 
-    if (valueB == 1) { // READ / LECTURA (escribe en memoria)
+    if (valueB == 1) {                         // READ / LECTURA (escribe en memoria)
         for (int i = 0; i < numsAmount; i++) { // realiza N lecturas
             int32_t logicAdr = v_EDX + i * size;
             printf("\n[%04X]:", obtainPhysicAdr(m, logicAdr));
@@ -40,14 +37,12 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
                 STOP(0, 0, m);
                 break;
             }
-
-            printf("\n");
         }
     } else if (valueB == 2) { // WRITE / ESCRITURA (lee de memoria)
         for (int i = 0; i < numsAmount; i++) {
             int32_t logicAdr = v_EDX + i * size;
             printf("\n[%04X]", obtainPhysicAdr(m, logicAdr));
-            memRead(logicAdr, size, m); // lee de memoria y valida
+            memRead(logicAdr, size, m->registers[DS].value, m); // lee de memoria y valida
             value = m->registers[MBR].value;
             printf(" %d", value);
             if (error) {
@@ -118,9 +113,7 @@ void NOT(int32_t OPA, int32_t OPB, type_machine *m) {
     uploadcc(valA, 0, resultado, m, 0);
 }
 
-void STOP(int32_t OPA, int32_t OPB, type_machine *m) {
-    m->registers[IP].value = 0xFFFFFFFF;
-}
+void STOP(int32_t OPA, int32_t OPB, type_machine *m) { m->registers[IP].value = 0xFFFFFFFF; }
 
 void MOV(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t dato = getOPValue(OPB, m);
@@ -158,7 +151,7 @@ void DIV(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t valB = getOPValue(OPB, m);
 
     if (valB == 0) {
-        printf("ERROR: porq queres divir por 0?\n");
+        printf("ERROR: DIVISON POR 0\n");
         STOP(0, 0, m);
         return;
     }
@@ -253,4 +246,9 @@ void RND(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t ran = rand() % (getOPValue(OPB, m) + 1);
 
     setOPValue(OPA, m, ran);
+}
+
+void TRASH(int32_t, int32_t, type_machine *) {
+    printf("ERROR OPERACION INVALIDA");
+    exit(-1);
 }

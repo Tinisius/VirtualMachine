@@ -15,13 +15,15 @@ int corresponds(type_machine *);
 
 uint16_t obtainPhysicAdr(type_machine *, int32_t);
 
-int inDS(int32_t physicAdr, type_machine *);
+int inSegment(int32_t physicAdr, int32_t segment, type_machine *);
+
+int inMem(int32_t physicAdr);
 
 void uploadcc(int32_t valA, int32_t valB, int32_t result, type_machine *m, int op_mode);
 
 int memWrite(int32_t, int16_t, type_machine *, int32_t, int *);
 
-void memRead(int32_t, int16_t, type_machine *);
+void memRead(int32_t, int16_t, int32_t, type_machine *);
 
 void printBin(int8_t);
 

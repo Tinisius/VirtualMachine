@@ -2,14 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 
-// columna donde arranca el | (la instruccion mas larga son 7 bytes:
-// "[XXXX] " + 7*"XX " = 28 caracteres)
-#define COL_BYTES 32
-
 // type 0: sin operando | 1: registro (1 byte) | 2: inmediato (2 bytes) | 3:
 // memoria [REG+offset] (3 bytes)
-static void formatOperand(char *buf, type_machine *m, uint8_t type,
-                          int32_t raw) {
+static void formatOperand(char *buf, type_machine *m, uint8_t type, int32_t raw) {
     switch (type) {
     case 0:
         buf[0] = '\0';
@@ -22,7 +17,7 @@ static void formatOperand(char *buf, type_machine *m, uint8_t type,
         sprintf(buf, "%d", (int16_t)(raw & 0xFFFF));
         break;
     case 3: {
-        int16_t offset = (int16_t)((raw >> 8) & 0xFFFF);
+        uint16_t offset = (uint16_t)((raw >> 8) & 0xFFFF);
         sprintf(buf, "[%s%+d]", m->registers[raw & 0x1F].name, offset);
         break;
     }
@@ -34,9 +29,7 @@ static void formatOperand(char *buf, type_machine *m, uint8_t type,
 // imprime 1 instruccion ya decodificada. physicDir es la direccion fisica donde
 // arranca la instruccion
 
-void disassembleInstruction(type_machine *m, int32_t physicDir, int instrLen,
-                            char *mnem, uint8_t typeA, int32_t valueA,
-                            uint8_t typeB, int32_t valueB) {
+void disassembleInstruction(type_machine *m, int32_t physicDir, int instrLen, char *mnem, uint8_t typeA, int32_t valueA, uint8_t typeB, int32_t valueB) {
     printf("[%04X] ", physicDir);
     int col = 7; // ancho de "[XXXX] "
     for (int i = 0; i < instrLen && physicDir + i < N_MEM; i++) {
