@@ -50,7 +50,7 @@ uint16_t obtainPhysicAdr(type_machine *m, int32_t logicAdr) {
         uint16_t base = highest(m->segments[segmIndex]);
         return base + offset;
     } else {
-        printf("te pasaste de segmentos\n");
+        printf("ERROR: FALLO DE SEGMENTO\n");
         exit(-1);
     }
 }
