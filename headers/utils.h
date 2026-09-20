@@ -13,8 +13,6 @@ int searchOperatorByCode(operatorASM[], int16_t);
 
 int corresponds(type_machine *);
 
-int32_t readValue(int8_t[], uint8_t, uint32_t *);
-
 uint32_t obtainPhysicDirection(type_machine *, int32_t);
 
 int inDS(int32_t physicDir, type_machine *);
@@ -29,7 +27,7 @@ void printBin(int8_t);
 
 int32_t arShiftRight(int32_t value, int32_t shift);
 
-void memReadValidate(int32_t logicDir,type_machine *m,int size);
+void memReadValidate(int32_t logicDir, type_machine *m, int size);
 
 uint32_t getOPValue(uint32_t op, type_machine *m);
 

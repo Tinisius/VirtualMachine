@@ -43,25 +43,6 @@ int corresponds(type_machine *m) {
     }
 }
 
-int32_t readValue(int8_t mem[], uint8_t operandSizeBytes, uint32_t *physicIndex) {
-    // EL VALOR PUEDE SER NEGATIVO BOLUDO
-    if (operandSizeBytes == 0)
-        return 0;
-
-    int32_t v;
-    v = mem[*physicIndex];
-    v <<= 24;
-    v >>= 24;
-    operandSizeBytes--;
-    for (int i = 0; i < operandSizeBytes; i++) {
-        v <<= 8;
-        v |= (uint8_t)mem[++(*physicIndex)]; // casteo a sin signo para evitar
-                                             // arrastrar basura negativa
-    }
-    (*physicIndex)++;
-    return v;
-}
-
 uint32_t obtainPhysicDirection(type_machine *m, int32_t logicDir) {
     uint16_t segmIndex = highest(logicDir);
     if (segmIndex < N_SEG) {
@@ -88,35 +69,33 @@ int memWrite(int32_t logicDir, int16_t size, type_machine *m, int32_t value, int
     m->registers[MAR].value = (size << 16) | (dir & 0xFFFF);
     for (int i = 0; i < size; i++) {
         if (inDS(dir + i, m)) {
-            m->memory[dir + i] = ((uint32_t)value >> ((size - i - 1) * 8)) & 0xFF; 
+            m->memory[dir + i] = ((uint32_t)value >> ((size - i - 1) * 8)) & 0xFF;
         } else {
-            *error = 1; 
+            *error = 1;
             return 1;
         }
     }
     return 0;
 }
 
-void memReadValidate(int32_t logicDir,type_machine *m,int size){
-    uint16_t physical = obtainPhysicDirection(m,logicDir);
+void memReadValidate(int32_t logicDir, type_machine *m, int size) {
+    uint16_t physical = obtainPhysicDirection(m, logicDir);
     m->registers[LAR].value = logicDir;
     m->registers[MAR].value = size << 16;
-    m->registers[MAR].value = m->registers[MAR].value | physical; //usar inDS luego
+    m->registers[MAR].value = m->registers[MAR].value | physical; // usar inDS luego
     uint32_t table = m->segments[highest(logicDir)];
-    uint16_t limitSeg = highest(table) + lowest(table); //limite de segmento es base y tamaño del mismo
+    uint16_t limitSeg = highest(table) + lowest(table); // limite de segmento es base y tamaño del mismo
     uint16_t limitAccess = physical + size;
-    if( highest(table) <= physical && limitSeg >= limitAccess ){ //controlo que esta en el DS 
+    if (highest(table) <= physical && limitSeg >= limitAccess) { // controlo que esta en el DS
         uint32_t data = 0;
-            for (int i = 0; i < size; i++)
+        for (int i = 0; i < size; i++)
             data |= ((uint32_t)(uint8_t)m->memory[physical + i]) << ((size - i - 1) * 8);
         m->registers[MBR].value = data;
-    }
-    else{
+    } else {
         printf("ERROR: FALLO DE SEGMENTO");
         exit(-1);
     }
 }
-
 
 void memRead(int32_t logicDir, int16_t size, type_machine *m, int32_t *value, int *error) {
     int32_t dir = obtainPhysicDirection(m, logicDir);
@@ -148,17 +127,16 @@ int overflowCC(uint32_t cc) { return ((cc << 3) >> 31) & 0x01; }
 
 uint32_t getOPValue(uint32_t op, type_machine *m) {
     uint8_t type_op = getOpType(op);
-    int32_t value = op & 0x00FFFFFF; 
+    int32_t value = op & 0x00FFFFFF;
     int error;
 
     if (type_op != 2) {
-        if (type_op == 3){
-            memReadValidate(getOPLogicAdress(op, m),m,4); //----anteriormente memread (sigue existiendo igual)
+        if (type_op == 3) {
+            memReadValidate(getOPLogicAdress(op, m), m, 4); //----anteriormente memread (sigue existiendo igual)
             value = m->registers[MBR].value;
-        }
-        else{
-            uint8_t reg = op & 0x1F; 
-             if (reg >= 0 && reg < N_REG) //no hace falta q maneje si esta en un registro 
+        } else {
+            uint8_t reg = op & 0x1F;
+            if (reg >= 0 && reg < N_REG) // no hace falta q maneje si esta en un registro
                 value = m->registers[reg].value;
             else
                 error = 1;
@@ -174,7 +152,7 @@ uint8_t getOpType(uint32_t op) { return (uint8_t)((op >> 24) & 0x00000003); }
 uint32_t getOPLogicAdress(uint32_t op, type_machine *m) {
     uint32_t adress = m->registers[op & 0x1F].value; // EJ: DS = 0001 0000 0000 0000
     if (getOpType(op) == 3) {                        // el DS es  00 01 00 00
-        adress += (op >> 8) & 0xFFFF;                
+        adress += (op >> 8) & 0xFFFF;
     }
 
     return adress;
@@ -191,7 +169,7 @@ void setOPValue(uint32_t OP, type_machine *m, int32_t newValue) {
             uint16_t logic = getOPLogicAdress(OP, m);
             m->registers[MBR].value = newValue;
             m->registers[LAR].value = logic;
-            memWrite(logic, 4, m, newValue, &error); 
+            memWrite(logic, 4, m, newValue, &error);
             if (error) {
                 STOP(0, 0, m);
                 return;
@@ -205,30 +183,26 @@ void setOPValue(uint32_t OP, type_machine *m, int32_t newValue) {
 
 void uploadcc(int32_t valA, int32_t valB, int32_t result, type_machine *m, int op_mode) {
     m->registers[CC].value = 0;
-    if (result == 0) 
-        m->registers[CC].value |= 0x00000001; 
-    
-    if (result & 0x80000000) 
+    if (result == 0)
+        m->registers[CC].value |= 0x00000001;
+
+    if (result & 0x80000000)
         m->registers[CC].value |= 0x00000002;
-    
-    if (op_mode == 1) { 
-        if ((uint32_t)result < (uint32_t)valA) 
+
+    if (op_mode == 1) {
+        if ((uint32_t)result < (uint32_t)valA)
             m->registers[CC].value |= 0x00000004;
-        
-        if (((valA & 0x80000000) == (valB & 0x80000000)) && ((valA & 0x80000000) != (result & 0x80000000))) 
+
+        if (((valA & 0x80000000) == (valB & 0x80000000)) && ((valA & 0x80000000) != (result & 0x80000000)))
             m->registers[CC].value |= 0x00000008;
-        
-    } 
-    else 
-        if (op_mode == 2) { 
-            if ((uint32_t)valA < (uint32_t)valB) {
-                m->registers[CC].value |= 0x00000004; 
-            }
+
+    } else if (op_mode == 2) {
+        if ((uint32_t)valA < (uint32_t)valB) {
+            m->registers[CC].value |= 0x00000004;
+        }
         if (((valA & 0x80000000) != (valB & 0x80000000)) && ((valA & 0x80000000) != (result & 0x80000000)))
-            m->registers[CC].value |= 0x00000008; 
-        
+            m->registers[CC].value |= 0x00000008;
     }
-   
 }
 int32_t arShiftRight(int32_t value, int32_t shift) {
     if ((value >> 31) & 0b1) { // si es negativo
