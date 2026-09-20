@@ -90,7 +90,7 @@ void memRead(int32_t logicAdr, int16_t size, type_machine *m) {
 
     uint32_t data = 0;
     for (int i = 0; i < size; i++) {
-        if (inDS(physicalAdr, m)) { // controlo que esta en el DS
+        if (inMem(physicalAdr)) { // controlo que esta en el DS
             data |= (m->memory[physicalAdr + i]) << ((size - i - 1) * 8);
         } else {
             printf("ERROR: FALLO DE SEGMENTO");
