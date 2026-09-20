@@ -28,7 +28,8 @@ int main(int argc, char *argv[]) {
         int32_t instrLogDir = machine.registers[IP].value;
 
         // leemos la instruccion
-        memRead(machine.registers[IP].value, 1, &machine, &instruction, &error);
+        memRead(machine.registers[IP].value, 1, &machine);
+        instruction = machine.registers[MBR].value;
 
         // separamos tipos y cod operacion
         uint8_t tipeB = (instruction >> 6) & 0x03;
@@ -44,15 +45,17 @@ int main(int argc, char *argv[]) {
         }
 
         // leemos OPB y guardamos
-        int32_t logDirB = machine.registers[IP].value + 1;
-        memRead(logDirB, tipeB, &machine, &valueB, &error);
+        int32_t logAdrB = machine.registers[IP].value + 1;
+        memRead(logAdrB, tipeB, &machine);
+        valueB = machine.registers[MBR].value;
         machine.registers[OP2].value =
             ((int32_t)tipeB << 24) | (valueB & 0x00FFFFFF);
 
         if (tipeA > 0) {
             // leemos OPA y guardamos
-            int32_t logDirA = logDirB + tipeB;
-            memRead(logDirA, tipeA, &machine, &valueA, &error);
+            int32_t logAdrA = logAdrB + tipeB;
+            memRead(logAdrA, tipeA, &machine);
+            valueA = machine.registers[MBR].value;
             machine.registers[OP1].value =
                 ((int32_t)tipeA << 24) | (valueA & 0x00FFFFFF);
         }
@@ -93,6 +96,9 @@ int main(int argc, char *argv[]) {
         printBin(machine.memory[i]);
         printf("\n");
     }
+
+    // printf("%0X %0X_opa %0X_opb\n",machine.registers[IP].value,
+    // machine.registers[OP1].value,machine.registers[OP2].value );
 
     return 0;
 }

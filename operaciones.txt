@@ -1,8 +1,0 @@
-SYS LISTO 
-SWAP listo
-SHL
-SHR
-SAR
-LDL
-LDH
-RND
