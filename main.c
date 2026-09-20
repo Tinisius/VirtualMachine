@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
 
     initRegs(machine.registers);
     initMainRegs(machine.registers);
-    uploadMem(argv, machine.memory, &cs_size, machine.registers[CS].value);
+    uploadMem(argv, machine.memory, &cs_size, lowest(machine.registers[CS].value));
 
     initTableSeg(machine.segments);
     addSegment(machine.segments, 0, cs_size);         // code segment
@@ -63,18 +63,18 @@ int main(int argc, char *argv[]) {
 
         printf("\n");
     }
-    // for (int i = 0; i < N_REG; i++) {
-    //     printf("%s \t", machine.registers[i].name, machine.registers[i].value);
-    //     for (int j = 3; j >= 0; j--) {
-    //         printBin(machine.registers[i].value >> (8 * j));
-    //     }
-    //     printf("\n");
-    // }
-    // for (int i = 0; i < 256; i++) {
-    //     printf("%d  ", i);
-    //     printBin(machine.memory[i]);
-    //     printf("\n");
-    // }
+    for (int i = 0; i < N_REG; i++) {
+        printf("%s \t", machine.registers[i].name, machine.registers[i].value);
+        for (int j = 3; j >= 0; j--) {
+            printBin(machine.registers[i].value >> (8 * j));
+        }
+        printf("\n");
+    }
+    for (int i = 0; i < 64; i++) {
+        printf("%d  ", i);
+        printBin(machine.memory[i]);
+        printf("\n");
+    }
 
     return 0;
 }
