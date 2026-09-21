@@ -1,4 +1,4 @@
 .vscode
 vmt
 .clang-format
-./versions/MV.exe
+/versions/MV.exe

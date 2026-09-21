@@ -49,7 +49,6 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
                 break;
             }
             value = m->registers[MBR].value;
-            printf("\nVALOR: %d \n", value);
             printFormat(value, v_EAX);
             printf("\n");
         }
