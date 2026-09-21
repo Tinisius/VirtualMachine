@@ -227,14 +227,15 @@ void uploadcc(int32_t valA, int32_t valB, int64_t result, type_machine *m, int c
         if ((uint32_t)valA >= (uint32_t)valB)
             cc |= 0x20000000;
 
-        // V: los operandos tienen distinto signo y el resultado sale con el signo de B
+        // V: los operandos tienen distinto signo y el resultado NO TIENE el signo de A, entonces es overflow
+        // ej: 5 - (-10) = 15 <-signo de A / -5 - 10 = 15 <-signo de A => si no pasa es overflow
         if (((valA ^ valB) & (valA ^ truncated)) < 0)
             cc |= 0x10000000;
         break;
 
     case 3: // el resultado real puede no entrar en 32 bits
         // C: excede los 32 bits del procesador, ni con signo ni sin el
-        if (result > 0xFFFFFFFFLL || result < -0x80000000LL)
+        if (result & 0x100000000LL)
             cc |= 0x20000000;
 
         // V: lo que quedo truncado no es el resultado real
