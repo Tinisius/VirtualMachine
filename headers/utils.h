@@ -27,6 +27,8 @@ int memWrite(int32_t, int16_t, type_machine *, int32_t, int *);
 
 void memRead(int32_t, int16_t, int32_t, type_machine *);
 
+void printBin(int32_t, int16_t);
+
 uint32_t getOPValue(uint32_t op, type_machine *m);
 
 uint32_t getOPLogicAdress(uint32_t op, type_machine *m);
