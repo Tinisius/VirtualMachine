@@ -31,8 +31,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
             // trunca value en funcion del size, (1 << 8) - 1 es 0xFF
             value = value & ((1ULL << (size * 8)) - 1);
 
-            memWrite(logicAdr, size, m, value,
-                     &error); // escribe en memoria y valida
+            memWrite(logicAdr, size, m, value, &error); // escribe en memoria y valida
             if (error) {
                 printf("error de memoria");
                 STOP(0, 0, m);
@@ -43,13 +42,14 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
         for (int i = 0; i < numsAmount; i++) {
             int32_t logicAdr = v_EDX + i * size;
             printf(" [%04X]", obtainPhysicAdr(m, logicAdr));
-            memRead(logicAdr, size, m->registers[DS].value, m); // lee de memoria y valida
+            memRead(logicAdr, size, m->registers[DS].value, m); // lee de memoria
             if (error) {
                 printf("error de memoria");
                 STOP(0, 0, m);
                 break;
             }
             value = m->registers[MBR].value;
+            printf("\nVALOR: %d \n", value);
             printFormat(value, v_EAX);
             printf("\n");
         }
