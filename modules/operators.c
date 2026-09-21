@@ -31,8 +31,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
             // trunca value en funcion del size, (1 << 8) - 1 es 0xFF
             value = value & ((1ULL << (size * 8)) - 1);
 
-            memWrite(logicAdr, size, m, value,
-                     &error); // escribe en memoria y valida
+            memWrite(logicAdr, size, m, value, &error); // escribe en memoria y valida
             if (error) {
                 printf("error de memoria");
                 STOP(0, 0, m);
@@ -42,15 +41,16 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
     } else if (valueB == 2) { // WRITE / ESCRITURA (lee de memoria)
         for (int i = 0; i < numsAmount; i++) {
             int32_t logicAdr = v_EDX + i * size;
-            printf("\n[%04X]", obtainPhysicAdr(m, logicAdr));
-            memRead(logicAdr, size, m->registers[DS].value, m); // lee de memoria y valida
-            value = m->registers[MBR].value;
-            printf(" %d", value);
+            printf(" [%04X]", obtainPhysicAdr(m, logicAdr));
+            memRead(logicAdr, size, m->registers[DS].value, m); // lee de memoria
             if (error) {
                 printf("error de memoria");
                 STOP(0, 0, m);
                 break;
             }
+            value = m->registers[MBR].value;
+            printFormat(value, v_EAX);
+            printf("\n");
         }
 
     } else { // ERROR
@@ -64,7 +64,6 @@ void JMP(int32_t OPA, int32_t OPB, type_machine *m) {
     uint16_t offset = getOPValue(OP, m) & 0xFFFF;
 
     // si me quiero desplazar pasado el tamaño de code segment
-    printf("LOWEST: %d\n", lowest(m->segments[m->registers[CS].value]));
     if (offset > lowest(m->segments[m->registers[CS].value])) {
         printf("ERROR: FALLO DE SEGMENTO");
         exit(-1);

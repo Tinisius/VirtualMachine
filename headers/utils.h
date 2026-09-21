@@ -27,7 +27,7 @@ int memWrite(int32_t, int16_t, type_machine *, int32_t, int *);
 
 void memRead(int32_t, int16_t, int32_t, type_machine *);
 
-void printBin(int8_t);
+void printBin(int32_t, int16_t);
 
 uint32_t getOPValue(uint32_t op, type_machine *m);
 
@@ -37,6 +37,8 @@ uint8_t getOpType(uint32_t);
 
 void setOPValue(uint32_t OP, type_machine *m, int32_t newValue);
 
+void printBin(int32_t, int16_t);
+
 int negativeCC(uint32_t cc);
 
 int zeroCC(uint32_t cc);
@@ -44,5 +46,7 @@ int zeroCC(uint32_t cc);
 int carryCC(uint32_t cc);
 
 int overflowCC(uint32_t cc);
+
+void printFormat(int32_t, int32_t);
 
 #endif

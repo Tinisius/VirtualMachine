@@ -63,18 +63,18 @@ int main(int argc, char *argv[]) {
 
         printf("\n");
     }
-    for (int i = 0; i < N_REG; i++) {
-        printf("%s \t", machine.registers[i].name, machine.registers[i].value);
-        for (int j = 3; j >= 0; j--) {
-            printBin(machine.registers[i].value >> (8 * j));
-        }
-        printf("\n");
-    }
-    for (int i = 0; i < 64; i++) {
-        printf("%d  ", i);
-        printBin(machine.memory[i]);
-        printf("\n");
-    }
+    // ESCRIBE REGISTROS
+    // for (int i = 0; i < N_REG; i++) {
+    //     printf("%s \t", machine.registers[i].name, machine.registers[i].value);
+    //     printBin(machine.registers[i].value, 4);
+    //     printf("\n");
+    // }
+    // //ESCRIBE MEMORIA
+    // for (int i = 0; i < 128; i++) {
+    //     printf("%d  ", i);
+    //     printBin(machine.memory[i], 1);
+    //     printf("\n");
+    // }
 
     return 0;
 }
