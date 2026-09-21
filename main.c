@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
 
     initRegs(machine.registers);
     initMainRegs(machine.registers);
-    uploadMem(argv, machine.memory, &cs_size, machine.registers[CS].value);
+    uploadMem(argv, machine.memory, &cs_size, lowest(machine.registers[CS].value));
 
     initTableSeg(machine.segments);
     addSegment(machine.segments, 0, cs_size);         // code segment
@@ -34,20 +34,9 @@ int main(int argc, char *argv[]) {
         // separamos tipos y cod operacion
         uint8_t typeB = (instruction >> 6) & 0x03;
         uint8_t typeA = (instruction >> 4) & 0x03;
-        int8_t opC = instruction & 0x1F;
+        uint8_t opC = instruction & 0x1F; // al ser unsigned nunca sera <0 y al leer 5 bits nunca será mayor que 32 = N_OP
 
-        // guardamos cod en OPC (REGISTRO)
         machine.registers[OPC].value = opC;
-        // int opIndex = searchOperatorByCode(operators, opC);
-        // if (opIndex == -1) {
-        //     printf("\nOPERACION INVALIDA\n");
-        //     exit(-1);
-        // }
-
-        if (opC < 0 || opC >= N_OP) {
-            printf("ERROR OPERACION INVALIDA");
-            exit(-1);
-        }
 
         // leemos OPB y guardamos
         int32_t logAdrB = machine.registers[IP].value + 1;

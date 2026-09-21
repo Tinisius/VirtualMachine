@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 void STOP(int32_t OPA, int32_t OPB, type_machine *m);
 
@@ -119,32 +120,34 @@ void STOP(int32_t OPA, int32_t OPB, type_machine *m) { m->registers[IP].value = 
 void MOV(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t dato = getOPValue(OPB, m);
     setOPValue(OPA, m, dato);
-    uploadcc(0, 0, dato, m, 0);
+    uploadcc(0, dato, dato, m, 0);
 }
 
 void ADD(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t valA = getOPValue(OPA, m);
     int32_t valB = getOPValue(OPB, m);
-    int32_t resultado = valA + valB;
-    setOPValue(OPA, m, resultado);
+    // el resultado se calcula en 64 bits para no perder el acarreo al truncar
+    int64_t resultado = (int64_t)valA + valB;
+    setOPValue(OPA, m, (int32_t)resultado);
     uploadcc(valA, valB, resultado, m, 1);
 }
 
 void SUB(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t valA = getOPValue(OPA, m);
     int32_t valB = getOPValue(OPB, m);
-    int32_t resultado = valA - valB;
-    setOPValue(OPA, m, resultado);
+    int64_t resultado = (int64_t)valA - valB;
+    setOPValue(OPA, m, (int32_t)resultado);
     uploadcc(valA, valB, resultado, m, 2);
 }
 
 void MUL(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t valA = getOPValue(OPA, m);
     int32_t valB = getOPValue(OPB, m);
-    int32_t resultado = valA * valB;
-    setOPValue(OPA, m, resultado);
+    // el producto exacto entra en 64 bits: asi se ven los bits que no caben en 32
+    int64_t resultado = (int64_t)valA * valB;
+    setOPValue(OPA, m, (int32_t)resultado);
 
-    uploadcc(valA, valB, resultado, m, 0);
+    uploadcc(valA, valB, resultado, m, 3);
 }
 
 void DIV(int32_t OPA, int32_t OPB, type_machine *m) {
@@ -156,16 +159,16 @@ void DIV(int32_t OPA, int32_t OPB, type_machine *m) {
         STOP(0, 0, m);
         return;
     }
-    int32_t resultado = valA / valB;
-    setOPValue(OPA, m, resultado);
-    uploadcc(valA, valB, resultado, m, 0);
+    int64_t resultado = (int64_t)valA / valB;
+    setOPValue(OPA, m, (int32_t)resultado);
+    uploadcc(valA, valB, resultado, m, 3);
 }
 
 void CMP(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t valA = getOPValue(OPA, m);
     int32_t valB = getOPValue(OPB, m);
     // el cmp no modifica los registros ni nada
-    int32_t resultado = valA - valB;
+    int64_t resultado = (int64_t)valA - valB;
     uploadcc(valA, valB, resultado, m, 2);
 }
 
@@ -179,7 +182,11 @@ void AND(int32_t OPA, int32_t OPB, type_machine *m) {
 }
 
 void OR(int32_t OPA, int32_t OPB, type_machine *m) {
-    //
+    int32_t valA = getOPValue(OPA, m);
+    int32_t valB = getOPValue(OPB, m);
+    int32_t resultado = valA | valB;
+    setOPValue(OPA, m, resultado);
+    uploadcc(valA, valB, resultado, m, 0);
 }
 
 void XOR(int32_t OPA, int32_t OPB, type_machine *m) {
@@ -199,26 +206,45 @@ void SWAP(int32_t OPA, int32_t OPB, type_machine *m) {
 }
 
 void SHL(int32_t OPA, int32_t OPB, type_machine *m) {
-    int8_t typeA = getOpType(OPA);
-    int error = 0;
+    int32_t valA = getOPValue(OPA, m);
+    int32_t valB = getOPValue(OPB, m);
 
-    int32_t value = getOPValue(OPA, m) << getOPValue(OPB, m);
-    setOPValue(OPA, m, value);
+    // se ensancha a 64 bits ANTES de correr para no perder los bits que salen
+    // por la izquierda; correr 32 bits o mas vacia la palabra
+    int32_t shift = valB < 0 ? 0 : (valB > 32 ? 32 : valB);
+    int64_t value = (int64_t)valA << shift;
+
+    setOPValue(OPA, m, (int32_t)value);
+    uploadcc(valA, valB, value, m, 3);
 }
 
 void SHR(int32_t OPA, int32_t OPB, type_machine *m) {
-    int8_t typeA = getOpType(OPA);
-    int error = 0;
+    int32_t valA = getOPValue(OPA, m);
+    int32_t valB = getOPValue(OPB, m);
 
-    int32_t value = getOPValue(OPA, m) >> getOPValue(OPB, m);
+    // desplazamiento logico: se corre el valor sin signo para que entren ceros
+    // por la izquierda; correr 32 bits o mas vacia la palabra
+    int32_t value = 0;
+    if (valB > 0 && valB < 32)
+        value = (uint32_t)valA >> valB;
+    else if (valB <= 0)
+        value = valA;
+
     setOPValue(OPA, m, value);
+    uploadcc(valA, valB, value, m, 3);
 }
 
 void SAR(int32_t OPA, int32_t OPB, type_machine *m) {
-    int8_t typeA = getOpType(OPA);
+    int32_t valA = getOPValue(OPA, m);
+    int32_t valB = getOPValue(OPB, m);
 
-    int32_t value = arShiftRight(getOPValue(OPA, m), getOPValue(OPB, m));
+    // desplazamiento aritmetico: se conserva el bit de signo
+    int32_t value = valA >> valB;
+    // arShiftRight(valA, valB < 0 ? 0 : (valB > 31 ? 31 : valB));
+
+    printf("\n");
     setOPValue(OPA, m, value);
+    uploadcc(valA, valB, value, m, 3);
 }
 
 // carga los 2 bytes menos significativos de OPA, con los 2 bytes menos
@@ -243,13 +269,17 @@ void LDH(int32_t OPA, int32_t OPB, type_machine *m) {
 }
 
 void RND(int32_t OPA, int32_t OPB, type_machine *m) {
+    srand(time(NULL));
     int8_t typeA = getOpType(OPA);
-    int32_t ran = rand() % (getOPValue(OPB, m) + 1);
+    int32_t valB = getOPValue(OPB, m);
+    int32_t ran = rand() % (abs(valB) + 1);
+    if (valB < 0)
+        ran *= -1;
 
     setOPValue(OPA, m, ran);
 }
 
-void TRASH(int32_t, int32_t, type_machine *) {
-    printf("ERROR OPERACION INVALIDA");
+void TRASH(int32_t OPA, int32_t OPB, type_machine *m) {
+    printf("\nERROR OPERACION INVALIDA\n");
     exit(-1);
 }

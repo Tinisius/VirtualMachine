@@ -119,6 +119,7 @@ void printBin(int32_t value, int16_t size) {
             printf("%0x ", (value >> (j + i * 8)) & 0b1);
         printf(" ");
     }
+    printf(" ");
 }
 int negativeCC(uint32_t cc) { return (cc >> 31) & 0x01; }
 
@@ -189,34 +190,68 @@ void setOPValue(uint32_t OP, type_machine *m, int32_t newValue) {
     }
 }
 
-// N, Z, C y V son los bits 31, 30, 29 y 28 del CC (el resto es reservado)
-// op_mode: 0 = ni C ni V, 1 = suma, 2 = resta
-void uploadcc(int32_t valA, int32_t valB, int32_t result, type_machine *m, int op_mode) {
-    m->registers[CC].value = 0;
+// N, Z, C y V son los bits 31, 30, 29 y 28 del CC (el resto es reservado).
+//
+// result es el resultado de la operacion SIN truncar a 32 bits, porque el modo 3
+// necesita ver los bits que no entran en la palabra del procesador.
+//
+// cc_mode dice de que operacion viene el resultado, porque C y V se calculan
+// de manera distinta en cada caso:
+//   0 = logica (MOV, AND, OR, XOR, NOT, SWAP): no puede desbordar, C y V van en 0
+//   1 = suma (ADD)
+//   2 = resta (SUB, CMP): se hace como A + (-B)
+//   3 = resultado ancho (MUL, DIV, SHL, SHR, SAR): C y V salen de comparar el
+//       resultado real contra los 32 bits disponibles
+void uploadcc(int32_t valA, int32_t valB, int64_t result, type_machine *m, int cc_mode) {
+    int32_t truncated = (int32_t)result; // lo que realmente queda en el destino
+    uint32_t cc = 0;
+    if (truncated < 0) // N: el resultado es negativo
+        cc |= 0x80000000;
 
-    if (result & 0x80000000) // N: el resultado es negativo
-        m->registers[CC].value |= 0x80000000;
+    if (truncated == 0) // Z: el resultado es cero
+        cc |= 0x40000000;
 
-    if (result == 0) // Z: el resultado es cero
-        m->registers[CC].value |= 0x40000000;
+    switch (cc_mode) {
+    case 1: // suma
+        // C: la suma sin signo dio la vuelta, el resultado quedo mas chico que A
+        if ((uint32_t)truncated < (uint32_t)valA)
+            cc |= 0x20000000;
 
-    if (op_mode == 1 || op_mode == 2) {
-        // C: el resultado excede los 32 bits (la resta es A + (-B))
-        if ((uint32_t)result < (uint32_t)valA)
-            m->registers[CC].value |= 0x20000000;
+        // V: los dos operandos tienen igual signo y el resultado sale con el contrario
+        if (((valA ^ truncated) & (valB ^ truncated)) < 0)
+            cc |= 0x10000000;
+        break;
 
-        // V: los operandos tienen igual signo (distinto en la resta) y el
-        // resultado sale con el signo contrario
-        int igualSigno = (valA & 0x80000000) == (valB & 0x80000000);
-        if ((op_mode == 1 ? igualSigno : !igualSigno) && ((valA & 0x80000000) != (result & 0x80000000)))
-            m->registers[CC].value |= 0x10000000;
+    case 2: // resta, que es la suma A + (-B)
+        // C: acarreo de salida de esa suma, o sea que la resta no pidio prestado
+        if ((uint32_t)valA >= (uint32_t)valB)
+            cc |= 0x20000000;
+
+        // V: los operandos tienen distinto signo y el resultado sale con el signo de B
+        if (((valA ^ valB) & (valA ^ truncated)) < 0)
+            cc |= 0x10000000;
+        break;
+
+    case 3: // el resultado real puede no entrar en 32 bits
+        // C: excede los 32 bits del procesador, ni con signo ni sin el
+        if (result > 0xFFFFFFFFLL || result < -0x80000000LL)
+            cc |= 0x20000000;
+
+        // V: lo que quedo truncado no es el resultado real
+        if (result != truncated)
+            cc |= 0x10000000;
+        break;
     }
+
+    m->registers[CC].value = cc;
 }
+
 int32_t arShiftRight(int32_t value, int32_t shift) {
     if ((value >> 31) & 0b1) { // si es negativo
         for (int i = 0; i < shift; i++) {
             value = (value >> 1) | (0b1 << 31);
         }
+        return value;
     } else
         return value >> shift;
 }

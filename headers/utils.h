@@ -19,7 +19,9 @@ int inSegment(int32_t physicAdr, int32_t segment, type_machine *);
 
 int inMem(int32_t physicAdr);
 
-void uploadcc(int32_t valA, int32_t valB, int32_t result, type_machine *m, int op_mode);
+// actualiza N, Z, C y V del registro CC; result viene sin truncar y cc_mode
+// indica de que operacion salio (0 logica, 1 suma, 2 resta, 3 resultado ancho)
+void uploadcc(int32_t valA, int32_t valB, int64_t result, type_machine *m, int cc_mode);
 
 int memWrite(int32_t, int16_t, type_machine *, int32_t, int *);
 
