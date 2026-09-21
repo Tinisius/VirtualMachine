@@ -228,13 +228,17 @@ void uploadcc(int32_t valA, int32_t valB, int64_t result, type_machine *m, int c
             cc |= 0x20000000;
 
         // V: los operandos tienen distinto signo y el resultado sale con el signo de B
+        // EQUIVALE A: signo(A) != signo(B) && signo(resultado) != signo(A)
+        // 10 - (-5) = 15 <- SIGNO DE A / -10 - 5 = -15 <- SIGNO DE A
+        // SI NO SE CUMPLE LO ANTERIOR HAY OVERFLOW => SE ROMPIO
         if (((valA ^ valB) & (valA ^ truncated)) < 0)
             cc |= 0x10000000;
         break;
 
     case 3: // el resultado real puede no entrar en 32 bits
         // C: excede los 32 bits del procesador, ni con signo ni sin el
-        if (result > 0xFFFFFFFFLL || result < -0x80000000LL)
+        // if(result > 0xFFFFFFFFLL || result < -0x80000000LL)
+        if ((result >> 32) & 1)
             cc |= 0x20000000;
 
         // V: lo que quedo truncado no es el resultado real
@@ -244,14 +248,4 @@ void uploadcc(int32_t valA, int32_t valB, int64_t result, type_machine *m, int c
     }
 
     m->registers[CC].value = cc;
-}
-
-int32_t arShiftRight(int32_t value, int32_t shift) {
-    if ((value >> 31) & 0b1) { // si es negativo
-        for (int i = 0; i < shift; i++) {
-            value = (value >> 1) | (0b1 << 31);
-        }
-        return value;
-    } else
-        return value >> shift;
 }
