@@ -62,8 +62,8 @@ int inSegment(int32_t physicAdr, int32_t segment, type_machine *m) {
     if (segmIndex >= N_SEG || segmIndex == -1)
         return 0;
 
-    int32_t base = highest(m->segments[segmIndex]);
-    int32_t size = lowest(m->segments[segmIndex]);
+    int16_t base = highest(m->segments[segmIndex]);
+    int16_t size = lowest(m->segments[segmIndex]);
 
     int result = physicAdr >= base && physicAdr < base + size && physicAdr < N_MEM;
     if (!result) {
@@ -113,11 +113,11 @@ void memRead(int32_t logicAdr, int16_t size, int32_t segment, type_machine *m) {
     m->registers[MBR].value = data;
 }
 
-void printBin(int8_t byte) {
-    for (int j = 7; j >= 0; j--) {
-        printf("%0x ", (byte >> j) & 0b1); // muestra todo el Code Segment
-        if (j == 4)
-            printf(" ");
+void printBin(int32_t value, int16_t size) {
+    for (int i = size - 1; i <= 0; i--) { // cada byte  (1 - size)  (validar endianes)
+        for (int j = 7; j >= 0; j--)      // escribe el byte (1 - 8)
+            printf("%0x ", (value >> (j + i * 8)) & 0b1);
+        printf(" ");
     }
 }
 int negativeCC(uint32_t cc) { return (cc >> 31) & 0x01; }
@@ -219,4 +219,19 @@ int32_t arShiftRight(int32_t value, int32_t shift) {
         }
     } else
         return value >> shift;
+}
+
+void printFormat(int32_t value, int32_t v_EAX) {
+    const char *formats[] = {"%d", "%c", "0o%o", "0x%X"};
+    // 1011
+    if ((v_EAX >> 4) & 1) {
+        printf("ob");
+        printBin(value, 4);
+    }
+    for (int i = 3; i >= 0; i--) {
+        int8_t bit = (v_EAX >> i) & 1;
+        if (bit)
+            printf(formats[i], value);
+    }
+    printf("\n");
 }

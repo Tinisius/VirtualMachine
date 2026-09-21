@@ -25,7 +25,7 @@ int memWrite(int32_t, int16_t, type_machine *, int32_t, int *);
 
 void memRead(int32_t, int16_t, int32_t, type_machine *);
 
-void printBin(int8_t);
+void printBin(int8_t, int16_t);
 
 int32_t arShiftRight(int32_t value, int32_t shift);
 
@@ -44,5 +44,7 @@ int zeroCC(uint32_t cc);
 int carryCC(uint32_t cc);
 
 int overflowCC(uint32_t cc);
+
+void printFormat(int32_t, int32_t);
 
 #endif
