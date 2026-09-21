@@ -116,7 +116,7 @@ void memRead(int32_t logicAdr, int16_t size, int32_t segment, type_machine *m) {
 void printBin(int32_t value, int16_t size) {
     for (int i = size - 1; i >= 0; i--) { // cada byte  (1 - size)  (validar endianes)
         for (int j = 7; j >= 0; j--)      // escribe el byte (1 - 8)
-            printf("%0x ", (value >> (j + i * 8)) & 0b1);
+            printf("%0x", (value >> (j + i * 8)) & 0b1);
         printf(" ");
     }
 }
