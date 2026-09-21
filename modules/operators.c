@@ -166,6 +166,7 @@ void DIV(int32_t OPA, int32_t OPB, type_machine *m) {
     }
     int64_t resultado = (int64_t)valA / valB;
     setOPValue(OPA, m, (int32_t)resultado);
+    m->registers[AC].value = valA % valB; //el div debe modificar el ac
     uploadcc(valA, valB, resultado, m, 3);
 }
 
