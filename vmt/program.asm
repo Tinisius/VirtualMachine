@@ -1,21 +1,16 @@
-MOV EDX, DS
-LDL ECX, 1
-LDH ECX, 4
-MOV EAX, 0x8
-SYS 0x1
-MOV EAX, [0]
-MOV ECX, -1
+inicio:
+    ; Escribimos separados por 4 bytes para no pisarnos[cite: 2]
+    MOV [0], 'H'       
+    MOV [4], 'o'       
+    MOV [8], 'l'       
+    MOV [12], 'a'      
 
-otro: CMP EAX, 0
-JZ fin
-SHR EAX,1
-ADD ECX, 1
-JMP otro
-
-fin: MOV [4], ECX
-MOV EDX,DS
-LDL ECX, 4
-LDH ECX,4
-MOV EAX, 0x9
-SYS 0x2
-STOP
+    ; Configuramos SYS 2 (WRITE)
+    MOV EAX, 0x02      ; Modo Caracteres[cite: 2]
+    MOV EDX, DS        ; Apuntamos al DS[cite: 2]
+    
+    LDH ECX, 4         ; AHORA Si: Tamaño de la celda de 4 bytes[cite: 2]
+    LDL ECX, 4         ; Cantidad a imprimir: 4 valores[cite: 2]
+    
+    SYS 2              
+    STOP
