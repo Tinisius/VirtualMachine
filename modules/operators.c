@@ -65,7 +65,6 @@ void JMP(int32_t OPA, int32_t OPB, type_machine *m) {
     uint16_t offset = getOPValue(OP, m) & 0xFFFF;
 
     // si me quiero desplazar pasado el tamaño de code segment
-    printf("LOWEST: %d\n", lowest(m->segments[m->registers[CS].value]));
     if (offset > lowest(m->segments[m->registers[CS].value])) {
         printf("ERROR: FALLO DE SEGMENTO");
         exit(-1);
