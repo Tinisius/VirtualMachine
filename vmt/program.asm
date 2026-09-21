@@ -6,7 +6,7 @@ inicio:
     MOV [12], 'a'      
 
     ; Configuramos SYS 2 (WRITE)
-    MOV EAX, 0x03      ; Modo Caracteres[cite: 2]
+    MOV EAX, 0x1F      ; Modo Caracteres[cite: 2]
     MOV EDX, DS        ; Apuntamos al DS[cite: 2]
     
     LDH ECX, 4         ; AHORA Si: Tamaño de la celda de 4 bytes[cite: 2]
