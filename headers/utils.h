@@ -35,6 +35,8 @@ uint8_t getOpType(uint32_t);
 
 void setOPValue(uint32_t OP, type_machine *m, int32_t newValue);
 
+void printBin(int32_t, int16_t);
+
 int negativeCC(uint32_t cc);
 
 int zeroCC(uint32_t cc);
