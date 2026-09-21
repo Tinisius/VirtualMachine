@@ -115,44 +115,44 @@ void JNZ(int32_t OPA, int32_t OPB, type_machine *m) {
 
 void NOT(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t valA = getOPValue(OPA, m);
-    int32_t resultado = ~valA;
-    setOPValue(OPA, m, resultado);
-    uploadcc(valA, 0, resultado, m, 0);
+    int32_t result = ~valA;
+    setOPValue(OPA, m, result);
+    uploadcc(valA, 0, result, m, 0);
 }
 
 void STOP(int32_t OPA, int32_t OPB, type_machine *m) { m->registers[IP].value = 0xFFFFFFFF; }
 
 void MOV(int32_t OPA, int32_t OPB, type_machine *m) {
-    int32_t dato = getOPValue(OPB, m);
-    setOPValue(OPA, m, dato);
-    uploadcc(0, dato, dato, m, 0);
+    int32_t value = getOPValue(OPB, m);
+    setOPValue(OPA, m, value);
+    uploadcc(0, value, value, m, 0);
 }
 
 void ADD(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t valA = getOPValue(OPA, m);
     int32_t valB = getOPValue(OPB, m);
     // el resultado se calcula en 64 bits para no perder el acarreo al truncar
-    int64_t resultado = (int64_t)valA + valB;
-    setOPValue(OPA, m, (int32_t)resultado);
-    uploadcc(valA, valB, resultado, m, 1);
+    int64_t result = (int64_t)valA + valB;
+    setOPValue(OPA, m, (int32_t)result);
+    uploadcc(valA, valB, result, m, 1);
 }
 
 void SUB(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t valA = getOPValue(OPA, m);
     int32_t valB = getOPValue(OPB, m);
-    int64_t resultado = (int64_t)valA - valB;
-    setOPValue(OPA, m, (int32_t)resultado);
-    uploadcc(valA, valB, resultado, m, 2);
+    int64_t result = (int64_t)valA - valB;
+    setOPValue(OPA, m, (int32_t)result);
+    uploadcc(valA, valB, result, m, 2);
 }
 
 void MUL(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t valA = getOPValue(OPA, m);
     int32_t valB = getOPValue(OPB, m);
     // el producto exacto entra en 64 bits: asi se ven los bits que no caben en 32
-    int64_t resultado = (int64_t)valA * valB;
-    setOPValue(OPA, m, (int32_t)resultado);
+    int64_t result = (int64_t)valA * valB;
+    setOPValue(OPA, m, (int32_t)result);
 
-    uploadcc(valA, valB, resultado, m, 3);
+    uploadcc(valA, valB, result, m, 3);
 }
 
 void DIV(int32_t OPA, int32_t OPB, type_machine *m) {
@@ -164,44 +164,44 @@ void DIV(int32_t OPA, int32_t OPB, type_machine *m) {
         STOP(0, 0, m);
         return;
     }
-    int64_t resultado = (int64_t)valA / valB;
-    setOPValue(OPA, m, (int32_t)resultado);
+    int64_t result = (int64_t)valA / valB;
+    setOPValue(OPA, m, (int32_t)result);
     m->registers[AC].value = valA % valB; //el div debe modificar el ac
-    uploadcc(valA, valB, resultado, m, 3);
+    uploadcc(valA, valB, result, m, 3);
 }
 
 void CMP(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t valA = getOPValue(OPA, m);
     int32_t valB = getOPValue(OPB, m);
     // el cmp no modifica los registros ni nada
-    int64_t resultado = (int64_t)valA - valB;
-    uploadcc(valA, valB, resultado, m, 2);
+    int64_t result = (int64_t)valA - valB;
+    uploadcc(valA, valB, result, m, 2);
 }
 
 void AND(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t valA = getOPValue(OPA, m);
     int32_t valB = getOPValue(OPB, m);
-    int32_t resultado = valA & valB;
-    setOPValue(OPA, m, resultado);
+    int32_t result = valA & valB;
+    setOPValue(OPA, m, result);
 
-    uploadcc(valA, valB, resultado, m, 0);
+    uploadcc(valA, valB, result, m, 0);
 }
 
 void OR(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t valA = getOPValue(OPA, m);
     int32_t valB = getOPValue(OPB, m);
-    int32_t resultado = valA | valB;
-    setOPValue(OPA, m, resultado);
-    uploadcc(valA, valB, resultado, m, 0);
+    int32_t result = valA | valB;
+    setOPValue(OPA, m, result);
+    uploadcc(valA, valB, result, m, 0);
 }
 
 void XOR(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t valA = getOPValue(OPA, m);
     int32_t valB = getOPValue(OPB, m);
-    int32_t resultado = valA ^ valB;
-    setOPValue(OPA, m, resultado);
+    int32_t result = valA ^ valB;
+    setOPValue(OPA, m, result);
 
-    uploadcc(valA, valB, resultado, m, 0);
+    uploadcc(valA, valB, result, m, 0);
 }
 
 void SWAP(int32_t OPA, int32_t OPB, type_machine *m) {
