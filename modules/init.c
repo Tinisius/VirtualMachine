@@ -48,8 +48,7 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res) {
         *code_size = ((uint16_t)line[6] << 8) | line[7];
         // uso memcmp porque line no es una cadena terminada en \0. comparo
         // byte a byte contra ID
-        *res = (memcmp(line, ID, 5) == 0) && (line[5] == VERSION) &&
-               ((*code_size) <= N_MEM - 1);
+        *res = (memcmp(line, ID, 5) == 0) && (line[5] == VERSION) && ((*code_size) <= N_MEM - 1);
 
         // TEST: mostrar lectura
         printf("IDENTIFICADOR: \"%.5s\"\n", line);
@@ -61,8 +60,7 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res) {
 }
 
 void uploadMem(char *argv[], int8_t memory[], uint16_t *cs_size, int32_t cs) {
-    FILE *arch =
-        fopen(*(argv + 1), "rb"); // abre el archivo indicado por parametro
+    FILE *arch = fopen(*(argv + 1), "rb"); // abre el archivo indicado por parametro
 
     uint16_t code_size; // guardamos el sizeaño del code en una var de 2bytes
     int8_t res = 0;     // guarda si es posible ejecutar el programa .vmx
@@ -78,7 +76,7 @@ void uploadMem(char *argv[], int8_t memory[], uint16_t *cs_size, int32_t cs) {
         fclose(arch);
 
         // for (int i = 0; i < code_size; i++) {
-        //     printBin(memory[i]);
+        //     printBin(memory[i], 1);
         //     printf("  (%02x)", (uint8_t)memory[i]);
         //     printf("\n");
         // }
