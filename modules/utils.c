@@ -114,12 +114,11 @@ void memRead(int32_t logicAdr, int16_t size, int32_t segment, type_machine *m) {
 }
 
 void printBin(int32_t value, int16_t size) {
-    for (int i = size - 1; i <= 0; i--) { // cada byte  (1 - size)  (validar endianes)
+    for (int i = size - 1; i >= 0; i--) { // cada byte  (1 - size)  (validar endianes)
         for (int j = 7; j >= 0; j--)      // escribe el byte (1 - 8)
             printf("%0x ", (value >> (j + i * 8)) & 0b1);
         printf(" ");
     }
-    printf(" ");
 }
 int negativeCC(uint32_t cc) { return (cc >> 31) & 0x01; }
 
@@ -261,16 +260,28 @@ int32_t arShiftRight(int32_t value, int32_t shift) {
 }
 
 void printFormat(int32_t value, int32_t v_EAX) {
-    const char *formats[] = {"%d", "%c", "0o%o", "0x%X"};
-    // 1011
+    const char *formats[] = {"%d ", "%c ", "0o%o ", "0x%X "};
+
     if ((v_EAX >> 4) & 1) {
-        printf("ob");
+        printf("0b");
         printBin(value, 4);
+        printf(" ");        
     }
+    
     for (int i = 3; i >= 0; i--) {
         int8_t bit = (v_EAX >> i) & 1;
-        if (bit)
-            printf(formats[i], value);
+        if (bit) {
+            // 3. Manejo especial para el bit 1 (caracteres ASCII)
+            if (i == 1) {
+                // Rango de caracteres imprimibles estándar (del espacio a la virgulilla)
+                if (value >= 32 && value <= 126) {
+                    printf(formats[i], value);
+                } else {
+                    printf(". "); // Imprime punto si no es imprimible
+                }
+            } else {
+                printf(formats[i], value);
+            }
+        }
     }
-    printf("\n");
 }
