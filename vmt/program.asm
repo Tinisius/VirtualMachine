@@ -1,2 +1,21 @@
-MOV EAX, 1
-JMP 1000            ; salto fuera del codigo -> fin normal
+MOV EDX, DS
+LDL ECX, 1
+LDH ECX, 4
+MOV EAX, 0x8
+SYS 0x1
+MOV EAX, [0]
+MOV ECX, -1
+
+otro: CMP EAX, 0
+JZ fin
+SHR EAX,1
+ADD ECX, 1
+JMP otro
+
+fin: MOV [4], ECX
+MOV EDX,DS
+LDL ECX, 4
+LDH ECX,4
+MOV EAX, 0x9
+SYS 0x2
+STOP
