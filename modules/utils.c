@@ -9,27 +9,6 @@ uint16_t highest(uint32_t x) { return (x >> 16) & 0xFFFF; }
 
 uint16_t lowest(uint32_t x) { return x & 0xFFFF; }
 
-int searchOperatorByCode(operatorASM op[], int16_t code) {
-    int pri = 0;
-    int ult = N_OP - 1;
-
-    while (pri <= ult) {
-        int half = pri + (ult - pri) / 2; // Calcula el punto medio exacto
-
-        if (op[half].code == code) {
-            return half; // Elemento encontrado, devuelve el índice
-        }
-
-        if (code > op[half].code) {
-            pri = half + 1; // Busca en la mitad derecha
-        } else {
-            ult = half - 1; // Busca en la mitad izquierda
-        }
-    }
-
-    return -1; // No se encontró el código
-}
-
 int corresponds(type_machine *m) {
     if (m->registers[IP].value < 0)
         return 0;
@@ -265,9 +244,9 @@ void printFormat(int32_t value, int32_t v_EAX) {
     if ((v_EAX >> 4) & 1) {
         printf("0b");
         printBin(value, 4);
-        printf(" ");        
+        printf(" ");
     }
-    
+
     for (int i = 3; i >= 0; i--) {
         int8_t bit = (v_EAX >> i) & 1;
         if (bit) {
@@ -284,4 +263,28 @@ void printFormat(int32_t value, int32_t v_EAX) {
             }
         }
     }
+}
+
+void logHeader(char *id, char v, uint16_t code_size) {
+    printf("IDENTIFICADOR: \"%.5s\"\n", id);
+    printf("VERSION: %d\n", v);
+    printf("TAMANO EN BYTES: %u\n", code_size);
+}
+
+void logMachine(type_machine machine) {
+    // ESCRIBE REGISTROS
+    printf("\n");
+    for (int i = 0; i < N_REG; i++) {
+        printf("%s \t", machine.registers[i].name, machine.registers[i].value);
+        printBin(machine.registers[i].value, 4);
+        printf("\n");
+    }
+     printf("\n");
+    // //ESCRIBE MEMORIA
+    for (int i = 0; i < 128; i++) {
+        printf("%d  ", i);
+        printBin(machine.memory[i], 1);
+        printf("\n");
+    }
+     printf("\n");
 }

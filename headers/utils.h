@@ -9,8 +9,6 @@ uint16_t highest(uint32_t);
 
 uint16_t lowest(uint32_t);
 
-int searchOperatorByCode(operatorASM[], int16_t);
-
 int corresponds(type_machine *);
 
 uint16_t obtainPhysicAdr(type_machine *, int32_t);
@@ -48,5 +46,9 @@ int carryCC(uint32_t cc);
 int overflowCC(uint32_t cc);
 
 void printFormat(int32_t, int32_t);
+
+void logHeader(char*, char, uint16_t);
+
+void logMachine(type_machine);
 
 #endif

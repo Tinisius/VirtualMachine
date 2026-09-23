@@ -41,7 +41,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
     } else if (valueB == 2) { // WRITE / ESCRITURA (lee de memoria)
         for (int i = 0; i < numsAmount; i++) {
             int32_t logicAdr = v_EDX + i * size;
-            printf(" [%04X]", obtainPhysicAdr(m, logicAdr));
+            printf("[%04X]", obtainPhysicAdr(m, logicAdr));
             memRead(logicAdr, size, m->registers[DS].value, m); // lee de memoria
             if (error) {
                 printf("error de memoria");

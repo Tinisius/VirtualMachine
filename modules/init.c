@@ -50,10 +50,8 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res) {
         // byte a byte contra ID
         *res = (memcmp(line, ID, 5) == 0) && (line[5] == VERSION) && ((*code_size) <= N_MEM - 1);
 
-        // TEST: mostrar lectura
-        printf("IDENTIFICADOR: \"%.5s\"\n", line);
-        printf("VERSION: %d\n", line[5]);
-        printf("size EN BYTES: %u\n", *code_size);
+    
+    //    logHeader(line, line[5], *code_size);
     } else
         *res = 0;
     fclose(arch);

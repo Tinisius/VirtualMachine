@@ -54,5 +54,5 @@ void disassembleInstruction(type_machine *m, int32_t physicDir, int instrLen, ch
     else if (opB[0])
         printf("%s", opB);
 
-    // printf("\n");
+    printf("\n");
 }
