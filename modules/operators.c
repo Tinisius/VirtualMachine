@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
 void STOP(int32_t OPA, int32_t OPB, type_machine *m);
 
@@ -270,7 +269,6 @@ void LDH(int32_t OPA, int32_t OPB, type_machine *m) {
 }
 
 void RND(int32_t OPA, int32_t OPB, type_machine *m) {
-    srand(time(NULL));
     int8_t typeA = getOpType(OPA);
     int32_t valB = getOPValue(OPB, m);
     int32_t ran = rand() % (abs(valB) + 1);

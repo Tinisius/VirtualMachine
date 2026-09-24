@@ -19,18 +19,18 @@ void initRegs(reg regs[]) {
     }
 }
 
-void initTableSeg(uint32_t TBS[]) {
+void initTableSeg(int32_t TBS[]) {
     for (int i = 0; i < N_SEG; i++)
         TBS[i] = 0xFFFFFFFF;
 }
 
-void addSegment(uint32_t TBS[], uint8_t pos, uint16_t size) {
+void addSegment(int32_t TBS[], uint8_t pos, uint16_t size) {
     uint16_t last_size = 0;
-    if (pos <= 7) {
+    if (pos >= 0 && pos <= 7) {
         if (pos != 0)
             last_size = TBS[pos - 1] & 0x0000FFFF;
         // verificar que entre en memoria?
-        TBS[pos] = ((uint32_t)last_size << 16) | size;
+        TBS[pos] = (int32_t)(last_size << 16) | size;
     } else {
         printf("ERROR AL AGREGAR SEGMENTO");
         exit(-1);
@@ -50,13 +50,17 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res) {
         // byte a byte contra ID
         *res = (memcmp(line, ID, 5) == 0) && (line[5] == VERSION) && ((*code_size) <= N_MEM - 1);
 
-        //    logHeader(line, line[5], *code_size);
+        // TEST: mostrar lectura
+        printf("IDENTIFICADOR: \"%.5s\"\n", line);
+        printf("VERSION: %d\n", line[5]);
+        printf("size EN BYTES: %u\n", *code_size);
     } else
         *res = 0;
     fclose(arch);
 }
 
-void uploadMem(char *argv[], uint8_t memory[], uint16_t *cs_size, int32_t cs) {
+void uploadMem(char *argv[], int8_t memory[], uint16_t *cs_size, int32_t cs) {
+    FILE *arch = fopen(*(argv + 1), "rb"); // abre el archivo indicado por parametro
 
     uint16_t code_size; // guardamos el sizeaño del code en una var de 2bytes
     int8_t res = 0;     // guarda si es posible ejecutar el programa .vmx
@@ -65,12 +69,16 @@ void uploadMem(char *argv[], uint8_t memory[], uint16_t *cs_size, int32_t cs) {
     *cs_size = code_size;
 
     if (res) {
-        FILE *arch = fopen(*(argv + 1), "rb");
         fseek(arch, N_HEADER, SEEK_SET);
 
         fread(memory + cs, 1, code_size,
               arch); // guarda en memoria todo el code segment
-
         fclose(arch);
+
+        // for (int i = 0; i < code_size; i++) {
+        //     printBin(memory[i]);
+        //     printf("  (%02x)", (uint8_t)memory[i]);
+        //     printf("\n");
+        // }
     }
 }

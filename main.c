@@ -5,12 +5,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 int main(int argc, char *argv[]) {
     type_machine machine;
     uint16_t cs_size;
     operatorASM operators[N_OP] = OPERATORS;
     uint8_t disassembler = argc > 2 && strcmp(argv[2], "-d") == 0;
+    srand(time(NULL));
     int error = 0;
     int32_t valueA = 0, valueB = 0, instruction;
 
