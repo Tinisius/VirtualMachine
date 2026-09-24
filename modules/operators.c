@@ -16,59 +16,46 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
     uint16_t size = highest(v_ECX);
     uint16_t numsAmount = lowest(v_ECX);
     int error = 0;
-    int32_t valueB = OPB & 0xFFFFFF;
+    int32_t call = getOPValue(OPB, m); // numero de llamada al sistema (acepta inmediato, registro o memoria)
 
-    if (valueB == 1) {                         // READ / LECTURA (escribe en memoria)
+    // el tamaño de celda va de 1 a 4 bytes (ademas evita correr 1ULL 64 bits o mas)
+    if ((call == 1 || call == 2) && (size < 1 || size > 4))
+        fatal("TAMAÑO DE CELDA INVALIDO EN SYS");
+
+    if (call == 1) {                           // READ / LECTURA (escribe en memoria)
         for (int i = 0; i < numsAmount; i++) { // realiza N lecturas
             int32_t logicAdr = v_EDX + i * size;
             printf("\n[%04X]:", obtainPhysicAdr(m, logicAdr));
-            if (scanf(" %i", &value) != 1) {
-                printf("Entrada invalida\n");
-                STOP(0, 0, m);
-                break;
-            }
+            if (scanf(" %i", &value) != 1)
+                fatal("ENTRADA INVALIDA");
+
             // trunca value en funcion del size, (1 << 8) - 1 es 0xFF
             value = value & ((1ULL << (size * 8)) - 1);
 
             memWrite(logicAdr, size, m, value, &error); // escribe en memoria y valida
-            if (error) {
-                printf("error de memoria");
-                STOP(0, 0, m);
-                break;
-            }
+            if (error)
+                fatal("ERROR DE MEMORIA");
         }
-    } else if (valueB == 2) { // WRITE / ESCRITURA (lee de memoria)
+    } else if (call == 2) { // WRITE / ESCRITURA (lee de memoria)
         for (int i = 0; i < numsAmount; i++) {
             int32_t logicAdr = v_EDX + i * size;
             printf("[%04X]", obtainPhysicAdr(m, logicAdr));
-            memRead(logicAdr, size, m->registers[DS].value, m); // lee de memoria
-            if (error) {
-                printf("error de memoria");
-                STOP(0, 0, m);
-                break;
-            }
+            memRead(logicAdr, size, m->registers[DS].value, m); // lee de memoria y valida
             value = m->registers[MBR].value;
             printFormat(value, v_EAX);
             printf("\n");
         }
 
-    } else { // ERROR
-        printf("operando invalido \n");
-        STOP(0, 0, m);
-    }
+    } else
+        fatal("LLAMADA AL SISTEMA INVALIDA");
 }
 
 void JMP(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t OP = getOpType(OPB) ? OPB : OPA;
     uint16_t offset = getOPValue(OP, m) & 0xFFFF;
 
-    // si me quiero desplazar pasado el tamaño de code segment
-    if (offset > lowest(m->segments[m->registers[CS].value])) {
-        printf("ERROR: FALLO DE SEGMENTO");
-        exit(-1);
-    }
-
-    // codigo de segmento de CS + desplazamiento
+    // codigo de segmento de CS + desplazamiento. Si el desplazamiento queda fuera
+    // del segmento de codigo no es un error: la ejecucion termina (ver corresponds)
     m->registers[IP].value = (m->registers[CS].value & 0xFFFF0000) | offset;
 }
 
@@ -158,11 +145,8 @@ void DIV(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t valA = getOPValue(OPA, m);
     int32_t valB = getOPValue(OPB, m);
 
-    if (valB == 0) {
-        printf("ERROR: DIVISON POR 0\n");
-        STOP(0, 0, m);
-        return;
-    }
+    if (valB == 0)
+        fatal("DIVISION POR CERO");
     int64_t result = (int64_t)valA / valB;
     setOPValue(OPA, m, (int32_t)result);
     m->registers[AC].value = valA % valB; // el div debe modificar el ac
@@ -279,6 +263,5 @@ void RND(int32_t OPA, int32_t OPB, type_machine *m) {
 }
 
 void TRASH(int32_t OPA, int32_t OPB, type_machine *m) {
-    printf("\nERROR OPERACION INVALIDA\n");
-    exit(-1);
+    fatal("INSTRUCCION INVALIDA");
 }

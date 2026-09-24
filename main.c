@@ -16,6 +16,9 @@ int main(int argc, char *argv[]) {
     int error = 0;
     int32_t valueA = 0, valueB = 0, instruction;
 
+    if (argc < 2)
+        fatal("FALTA EL ARCHIVO. USO: vmx filename.vmx [-d]");
+
     initRegs(machine.registers);
     initMainRegs(machine.registers);
     uploadMem(argv, machine.memory, &cs_size, lowest(machine.registers[CS].value));

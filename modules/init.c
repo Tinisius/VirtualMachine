@@ -30,16 +30,16 @@ void addSegment(int32_t TBS[], uint8_t pos, uint16_t size) {
         if (pos != 0)
             last_size = TBS[pos - 1] & 0x0000FFFF;
         // verificar que entre en memoria?
-        TBS[pos] = (int32_t)(last_size << 16) | size;
-    } else {
-        printf("ERROR AL AGREGAR SEGMENTO");
-        exit(-1);
-    }
+        TBS[pos] = ((uint32_t)last_size << 16) | size;
+    } else
+        fatal("NO SE PUDO AGREGAR EL SEGMENTO");
 }
 
 void readHeader(char route[], uint16_t *code_size, int8_t *res) {
     uint8_t line[N_HEADER];
     FILE *arch = fopen(route, "rb");
+    if (arch == NULL)
+        fatal("NO SE PUDO ABRIR EL ARCHIVO");
 
     if (fread(line, 1, N_HEADER, arch) == N_HEADER) {
         // Bytes 0-4: identificador "VMX26"
@@ -68,17 +68,17 @@ void uploadMem(char *argv[], int8_t memory[], uint16_t *cs_size, int32_t cs) {
     readHeader(*(argv + 1), &code_size, &res);
     *cs_size = code_size;
 
-    if (res) {
-        fseek(arch, N_HEADER, SEEK_SET);
+    if (!res)
+        fatal("CABECERA INVALIDA: EL ARCHIVO NO ES UN PROGRAMA VMX26 VERSION 1");
 
-        fread(memory + cs, 1, code_size,
-              arch); // guarda en memoria todo el code segment
-        fclose(arch);
+    FILE *arch = fopen(*(argv + 1), "rb");
+    if (arch == NULL)
+        fatal("NO SE PUDO ABRIR EL ARCHIVO");
+    fseek(arch, N_HEADER, SEEK_SET);
 
-        // for (int i = 0; i < code_size; i++) {
-        //     printBin(memory[i]);
-        //     printf("  (%02x)", (uint8_t)memory[i]);
-        //     printf("\n");
-        // }
-    }
+    // guarda en memoria todo el code segment
+    size_t read = fread(memory + cs, 1, code_size, arch);
+    fclose(arch);
+    if (read != code_size)
+        fatal("EL ARCHIVO TIENE MENOS BYTES DE CODIGO QUE LOS INDICADOS EN LA CABECERA");
 }

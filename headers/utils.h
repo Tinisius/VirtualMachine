@@ -9,11 +9,13 @@ uint16_t highest(uint32_t);
 
 uint16_t lowest(uint32_t);
 
+void fatal(const char *msg);
+
 int corresponds(type_machine *);
 
 uint16_t obtainPhysicAdr(type_machine *, int32_t);
 
-int inSegment(int32_t physicAdr, int32_t segment, type_machine *);
+int inSegment(int32_t physicAdr, int32_t logicAdr, type_machine *);
 
 int inMem(int32_t physicAdr);
 

@@ -9,48 +9,44 @@ uint16_t highest(uint32_t x) { return (x >> 16) & 0xFFFF; }
 
 uint16_t lowest(uint32_t x) { return x & 0xFFFF; }
 
+// informa el error y aborta la ejecucion del proceso
+void fatal(const char *msg) {
+    printf("\nERROR: %s\n", msg);
+    exit(-1);
+}
+
+// sigue la ejecucion mientras IP apunte dentro del segmento de codigo
+// (STOP deja IP en -1, cuyo codigo de segmento 0xFFFF no coincide con el de CS)
 int corresponds(type_machine *m) {
-    if (m->registers[IP].value < 0)
-        return 0;
-    else {
-        uint32_t table = m->segments[highest(m->registers[CS].value)];
-        uint16_t base = highest(table);
-        uint16_t size = lowest(table);
-        int16_t ipPhysicAdr = obtainPhysicAdr(m, m->registers[IP].value);
-        ipPhysicAdr -= base;
-        return ipPhysicAdr >= 0 && ipPhysicAdr < size;
-    }
+    uint32_t ip = m->registers[IP].value;
+    uint16_t segmIndex = highest(ip);
+    return segmIndex == highest(m->registers[CS].value) && lowest(ip) < lowest(m->segments[segmIndex]);
 }
 
 uint16_t obtainPhysicAdr(type_machine *m, int32_t logicAdr) {
     uint16_t segmIndex = highest(logicAdr);
-    if (segmIndex < N_SEG) {
-        uint16_t offset = lowest(logicAdr);
-        uint16_t base = highest(m->segments[segmIndex]);
-        return base + offset;
-    } else {
-        printf("ERROR: FALLO DE SEGMENTO\n");
-        exit(-1);
-    }
+    if (segmIndex >= N_SEG)
+        fatal("FALLO DE SEGMENTO");
+
+    uint16_t offset = lowest(logicAdr);
+    uint16_t base = highest(m->segments[segmIndex]);
+    return base + offset;
 }
 
-// segment es el valor del registro de segmento (ej: DS = 0x00010000),
-// el indice en la tabla de segmentos es su parte alta
-int inSegment(int32_t physicAdr, int32_t segment, type_machine *m) {
-    uint16_t segmIndex = highest(segment);
-    if (segmIndex >= N_SEG || segmIndex == -1)
-        return 0;
+// valida que physicAdr caiga dentro del segmento de la direccion logica logicAdr
+// (su parte alta es el indice en la tabla de segmentos); si no, aborta
+int inSegment(int32_t physicAdr, int32_t logicAdr, type_machine *m) {
+    uint16_t segmIndex = highest(logicAdr);
+    if (segmIndex >= N_SEG || m->segments[segmIndex] == 0xFFFFFFFF)
+        fatal("FALLO DE SEGMENTO");
 
     uint16_t base = highest(m->segments[segmIndex]);
     uint16_t size = lowest(m->segments[segmIndex]);
 
-    int result = physicAdr >= base && physicAdr < base + size && physicAdr < N_MEM;
-    if (!result) {
-        printf("\nERROR FALLO DE SEGMENTO\n");
-        exit(-1);
-    }
+    if (physicAdr < base || physicAdr >= base + size || physicAdr >= N_MEM)
+        fatal("FALLO DE SEGMENTO");
 
-    return physicAdr >= base && physicAdr < N_MEM && physicAdr < base + size;
+    return 1;
 }
 
 int memWrite(int32_t logicAdr, int16_t size, type_machine *m, int32_t value, int *error) {
@@ -61,7 +57,7 @@ int memWrite(int32_t logicAdr, int16_t size, type_machine *m, int32_t value, int
     m->registers[MBR].value = value;
 
     for (int i = 0; i < size; i++) {
-        if (inSegment(physicalAdr + i, m->registers[DS].value, m)) {
+        if (inSegment(physicalAdr + i, logicAdr, m)) {
             m->memory[physicalAdr + i] = ((uint32_t)value >> ((size - i - 1) * 8)) & 0xFF;
         } else {
             *error = 1;
@@ -79,15 +75,10 @@ void memRead(int32_t logicAdr, int16_t size, int32_t segment, type_machine *m) {
 
     uint32_t data = 0;
     for (int i = 0; i < size; i++) {
-        // Al leer una instruccion segment = el valor guardado en CS
-        // si está leyendo una instrucción no es necesario validar inSegment
-
-        if (segment == m->registers[CS].value || inSegment(physicalAdr + i, segment, m)) { // controlo que este dentro del segmento
+        // segment == CS indica que se esta leyendo una instruccion: no se valida.
+        // Los demas accesos se validan contra el segmento de la direccion logica
+        if (segment == m->registers[CS].value || inSegment(physicalAdr + i, logicAdr, m))
             data |= (uint32_t)m->memory[physicalAdr + i] << ((size - i - 1) * 8);
-        } else {
-            printf("ERROR: FALLO DE SEGMENTO");
-            exit(-1);
-        }
     }
     m->registers[MBR].value = data;
 }
@@ -150,16 +141,10 @@ void setOPValue(uint32_t OP, type_machine *m, int32_t newValue) {
             m->registers[MBR].value = newValue;
             m->registers[LAR].value = logic;
             memWrite(logic, 4, m, newValue, &error);
-            if (error) {
-                printf("\nERROR DE MEMORIA\n");
-                exit(-1);
-            }
+            if (error)
+                fatal("ERROR DE MEMORIA");
         } else
-            error = 1;
-    }
-    if (error) {
-        printf("ERROR SETOPVALUE");
-        exit(-1);
+            fatal("NO SE PUEDE ESCRIBIR EN UN OPERANDO INMEDIATO");
     }
 }
 
