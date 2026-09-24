@@ -35,8 +35,6 @@ uint8_t getOpType(uint32_t);
 
 void setOPValue(uint32_t OP, type_machine *m, int32_t newValue);
 
-void printBin(int32_t, int16_t);
-
 int negativeCC(uint32_t cc);
 
 int zeroCC(uint32_t cc);
@@ -47,7 +45,7 @@ int overflowCC(uint32_t cc);
 
 void printFormat(int32_t, int32_t);
 
-void logHeader(char*, char, uint16_t);
+void logHeader(char *, char, uint16_t);
 
 void logMachine(type_machine);
 

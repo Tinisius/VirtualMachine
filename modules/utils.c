@@ -119,12 +119,7 @@ uint32_t getOPValue(uint32_t op, type_machine *m) {
 
         } else {
             uint8_t reg = op & 0x1F;
-            if (reg >= 0 && reg < N_REG) // no hace falta q maneje si esta en un registro
-                value = m->registers[reg].value;
-            else {
-                printf("ERROR GETOPVALUE");
-                exit(-1);
-            }
+            value = m->registers[reg].value;
         }
     }
 
@@ -279,12 +274,12 @@ void logMachine(type_machine machine) {
         printBin(machine.registers[i].value, 4);
         printf("\n");
     }
-     printf("\n");
+    printf("\n");
     // //ESCRIBE MEMORIA
     for (int i = 0; i < 128; i++) {
         printf("%d  ", i);
         printBin(machine.memory[i], 1);
         printf("\n");
     }
-     printf("\n");
+    printf("\n");
 }

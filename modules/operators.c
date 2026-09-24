@@ -23,7 +23,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
         for (int i = 0; i < numsAmount; i++) { // realiza N lecturas
             int32_t logicAdr = v_EDX + i * size;
             printf("\n[%04X]:", obtainPhysicAdr(m, logicAdr));
-            if (scanf(" %d", &value) != 1) {
+            if (scanf(" %i", &value) != 1) {
                 printf("Entrada invalida\n");
                 STOP(0, 0, m);
                 break;
@@ -114,10 +114,10 @@ void JNZ(int32_t OPA, int32_t OPB, type_machine *m) {
 }
 
 void NOT(int32_t OPA, int32_t OPB, type_machine *m) {
-    int32_t valA = getOPValue(OPA, m);
-    int32_t result = ~valA;
-    setOPValue(OPA, m, result);
-    uploadcc(valA, 0, result, m, 0);
+    int32_t valB = getOPValue(OPB, m);
+    int32_t result = ~valB;
+    setOPValue(OPB, m, result);
+    uploadcc(valB, 0, result, m, 0);
 }
 
 void STOP(int32_t OPA, int32_t OPB, type_machine *m) { m->registers[IP].value = 0xFFFFFFFF; }
