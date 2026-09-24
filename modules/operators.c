@@ -166,7 +166,7 @@ void DIV(int32_t OPA, int32_t OPB, type_machine *m) {
     }
     int64_t result = (int64_t)valA / valB;
     setOPValue(OPA, m, (int32_t)result);
-    m->registers[AC].value = valA % valB; //el div debe modificar el ac
+    m->registers[AC].value = valA % valB; // el div debe modificar el ac
     uploadcc(valA, valB, result, m, 3);
 }
 
@@ -252,8 +252,7 @@ void SAR(int32_t OPA, int32_t OPB, type_machine *m) {
 
 // carga los 2 bytes menos significativos de OPA, con los 2 bytes menos significativos de OPB
 void LDL(int32_t OPA, int32_t OPB, type_machine *m) {
-    int8_t typeA = getOpType(OPA);
-    int16_t lowB = lowest(getOPValue(OPB, m));
+    uint16_t lowB = lowest(getOPValue(OPB, m));
 
     int32_t value = (getOPValue(OPA, m) & 0xFFFF0000) | lowB;
     setOPValue(OPA, m, value);
@@ -261,10 +260,10 @@ void LDL(int32_t OPA, int32_t OPB, type_machine *m) {
 
 // carga los 2 bytes más significativos de OPA, con los 2 bytes menos significativos de OPB
 void LDH(int32_t OPA, int32_t OPB, type_machine *m) {
-    int8_t typeA = getOpType(OPA);
-    int16_t lowB = lowest(getOPValue(OPB, m));
 
-    int32_t value = lowest(getOPValue(OPA, m)) | (lowB << 16);
+    uint16_t lowB = lowest(getOPValue(OPB, m));
+
+    uint32_t value = lowest(getOPValue(OPA, m)) | (lowB << 16);
 
     setOPValue(OPA, m, value);
 }
