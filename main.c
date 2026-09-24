@@ -32,9 +32,8 @@ int main(int argc, char *argv[]) {
 
         int32_t instrLogDir = machine.registers[IP].value;
 
-        // leemos la instruccion
-        memRead(machine.registers[IP].value, 1, machine.registers[CS].value, &machine);
-        instruction = machine.registers[MBR].value;
+        // leemos la instruccion (con segment = CS, memRead no modifica LAR, MAR ni MBR)
+        instruction = memRead(machine.registers[IP].value, 1, machine.registers[CS].value, &machine);
 
         // separamos tipos y cod operacion
         uint8_t typeB = (instruction >> 6) & 0x03;
@@ -45,15 +44,13 @@ int main(int argc, char *argv[]) {
 
         // leemos OPB y guardamos
         int32_t logAdrB = machine.registers[IP].value + 1;
-        memRead(logAdrB, typeB, machine.registers[CS].value, &machine);
-        valueB = machine.registers[MBR].value;
+        valueB = memRead(logAdrB, typeB, machine.registers[CS].value, &machine);
         machine.registers[OP2].value = ((int32_t)typeB << 24) | (valueB & 0x00FFFFFF);
 
         if (typeA > 0) {
             // leemos OPA y guardamos
             int32_t logAdrA = logAdrB + typeB;
-            memRead(logAdrA, typeA, machine.registers[CS].value, &machine);
-            valueA = machine.registers[MBR].value;
+            valueA = memRead(logAdrA, typeA, machine.registers[CS].value, &machine);
             machine.registers[OP1].value = ((int32_t)typeA << 24) | (valueA & 0x00FFFFFF);
         }
         int instrLen = 1 + typeA + typeB;

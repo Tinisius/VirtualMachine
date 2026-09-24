@@ -25,7 +25,7 @@ void uploadcc(int32_t valA, int32_t valB, int64_t result, type_machine *m, int c
 
 int memWrite(int32_t, int16_t, type_machine *, int32_t, int *);
 
-void memRead(int32_t, int16_t, int32_t, type_machine *);
+uint32_t memRead(int32_t, int16_t, int32_t, type_machine *);
 
 void printBin(int32_t, int16_t);
 
@@ -45,7 +45,7 @@ int carryCC(uint32_t cc);
 
 int overflowCC(uint32_t cc);
 
-void printFormat(int32_t, int32_t);
+void printFormat(int32_t value, int32_t mode, int16_t size);
 
 void logHeader(char *, char, uint16_t);
 

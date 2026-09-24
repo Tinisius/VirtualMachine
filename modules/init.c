@@ -25,12 +25,13 @@ void initTableSeg(uint32_t TBS[]) {
 }
 
 void addSegment(uint32_t TBS[], uint8_t pos, uint16_t size) {
-    uint16_t last_size = 0;
+    uint16_t base = 0;
     if (pos <= 7) {
+        // el segmento empieza donde termina el anterior: base + tamaño del anterior
         if (pos != 0)
-            last_size = TBS[pos - 1] & 0x0000FFFF;
+            base = highest(TBS[pos - 1]) + lowest(TBS[pos - 1]);
         // verificar que entre en memoria?
-        TBS[pos] = ((uint32_t)last_size << 16) | size;
+        TBS[pos] = ((uint32_t)base << 16) | size;
     } else
         fatal("NO SE PUDO AGREGAR EL SEGMENTO");
 }

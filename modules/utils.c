@@ -67,20 +67,28 @@ int memWrite(int32_t logicAdr, int16_t size, type_machine *m, int32_t value, int
     return 0;
 }
 
-void memRead(int32_t logicAdr, int16_t size, int32_t segment, type_machine *m) {
+// lee size bytes a partir de logicAdr y devuelve el valor leido.
+// segment == CS indica que se esta leyendo una instruccion: no se valida y no se
+// modifican LAR, MAR ni MBR. Los demas accesos se validan contra el segmento de la
+// direccion logica y dejan cargados LAR, MAR y MBR
+uint32_t memRead(int32_t logicAdr, int16_t size, int32_t segment, type_machine *m) {
     uint16_t physicalAdr = obtainPhysicAdr(m, logicAdr);
+    int isInstruction = segment == m->registers[CS].value;
 
-    m->registers[LAR].value = logicAdr;
-    m->registers[MAR].value = (size << 16) | (physicalAdr & 0xFFFF);
+    if (!isInstruction) {
+        m->registers[LAR].value = logicAdr;
+        m->registers[MAR].value = (size << 16) | (physicalAdr & 0xFFFF);
+    }
 
     uint32_t data = 0;
     for (int i = 0; i < size; i++) {
-        // segment == CS indica que se esta leyendo una instruccion: no se valida.
-        // Los demas accesos se validan contra el segmento de la direccion logica
-        if (segment == m->registers[CS].value || inSegment(physicalAdr + i, logicAdr, m))
+        if (isInstruction || inSegment(physicalAdr + i, logicAdr, m))
             data |= (uint32_t)m->memory[physicalAdr + i] << ((size - i - 1) * 8);
     }
-    m->registers[MBR].value = data;
+
+    if (!isInstruction)
+        m->registers[MBR].value = data;
+    return data;
 }
 
 void printBin(int32_t value, int16_t size) {
@@ -218,34 +226,46 @@ int32_t arShiftRight(int32_t value, int32_t shift) {
         return value >> shift;
 }
 
-void printFormat(int32_t value, int32_t v_EAX) {
-    const char *formats[] = {"%d ", "%c ", "0o%o ", "0x%X "};
+// separa con un espacio cada formato escrito, salvo el primero
+static void separator(int *first) {
+    if (!*first)
+        putchar(' ');
+    *first = 0;
+}
 
-    if ((v_EAX >> 4) & 1) {
+// escribe el valor de una celda de size bytes en cada modo activo en mode (EAX),
+// en el orden del enunciado: binario, hexadecimal, octal, caracteres y decimal
+void printFormat(int32_t value, int32_t mode, int16_t size) {
+    uint32_t u = (uint32_t)value;
+    int first = 1;
+
+    if (mode & 0x10) { // binario sin ceros a la izquierda
+        separator(&first);
+        int msb = 31;
+        while (msb > 0 && !((u >> msb) & 1))
+            msb--;
         printf("0b");
-        printBin(value, 4);
-        printf(" ");
+        for (int b = msb; b >= 0; b--)
+            putchar('0' + ((u >> b) & 1));
     }
-
-    for (int i = 3; i >= 0; i--) {
-        int8_t bit = (v_EAX >> i) & 1;
-        if (bit) {
-            // 3. Manejo especial para el bit 1 (caracteres ASCII)
-            if (i == 1) {
-                // Rango de caracteres imprimibles estándar (del espacio a la virgulilla)
-                if (value >= 32 && value <= 126) {
-                    printf(formats[i], value);
-                } else {
-                    printf(". "); // Imprime punto si no es imprimible
-                }
-            } else {
-                // %o y %X esperan unsigned; %d mantiene el signo
-                if (i >= 2)
-                    printf(formats[i], (uint32_t)value);
-                else
-                    printf(formats[i], value);
-            }
+    if (mode & 0x08) {
+        separator(&first);
+        printf("0x%X", u);
+    }
+    if (mode & 0x04) {
+        separator(&first);
+        printf("0o%o", u);
+    }
+    if (mode & 0x02) { // un caracter por cada byte de la celda, '.' si no es imprimible
+        separator(&first);
+        for (int i = size - 1; i >= 0; i--) {
+            uint8_t c = (u >> (i * 8)) & 0xFF;
+            putchar(c >= 32 && c <= 126 ? c : '.');
         }
+    }
+    if (mode & 0x01) {
+        separator(&first);
+        printf("%d", value);
     }
 }
 
