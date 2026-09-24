@@ -41,8 +41,8 @@ int inSegment(int32_t physicAdr, int32_t segment, type_machine *m) {
     if (segmIndex >= N_SEG || segmIndex == -1)
         return 0;
 
-    int16_t base = highest(m->segments[segmIndex]);
-    int16_t size = lowest(m->segments[segmIndex]);
+    uint16_t base = highest(m->segments[segmIndex]);
+    uint16_t size = lowest(m->segments[segmIndex]);
 
     int result = physicAdr >= base && physicAdr < base + size && physicAdr < N_MEM;
     if (!result) {
@@ -83,7 +83,7 @@ void memRead(int32_t logicAdr, int16_t size, int32_t segment, type_machine *m) {
         // si está leyendo una instrucción no es necesario validar inSegment
 
         if (segment == m->registers[CS].value || inSegment(physicalAdr + i, segment, m)) { // controlo que este dentro del segmento
-            data |= (m->memory[physicalAdr + i]) << ((size - i - 1) * 8);
+            data |= (uint32_t)m->memory[physicalAdr + i] << ((size - i - 1) * 8);
         } else {
             printf("ERROR: FALLO DE SEGMENTO");
             exit(-1);
@@ -107,7 +107,7 @@ int carryCC(uint32_t cc) { return ((cc << 2) >> 31) & 0x01; }
 
 int overflowCC(uint32_t cc) { return ((cc << 3) >> 31) & 0x01; }
 
-uint32_t getOPValue(uint32_t op, type_machine *m) {
+int32_t getOPValue(uint32_t op, type_machine *m) {
     uint8_t type_op = getOpType(op);
     // inmediato: 2 bytes en complemento a 2, hay que extender el signo a 32
     int32_t value = (int16_t)(op & 0xFFFF);
@@ -254,7 +254,11 @@ void printFormat(int32_t value, int32_t v_EAX) {
                     printf(". "); // Imprime punto si no es imprimible
                 }
             } else {
-                printf(formats[i], value);
+                // %o y %X esperan unsigned; %d mantiene el signo
+                if (i >= 2)
+                    printf(formats[i], (uint32_t)value);
+                else
+                    printf(formats[i], value);
             }
         }
     }

@@ -19,18 +19,18 @@ void initRegs(reg regs[]) {
     }
 }
 
-void initTableSeg(int32_t TBS[]) {
+void initTableSeg(uint32_t TBS[]) {
     for (int i = 0; i < N_SEG; i++)
         TBS[i] = 0xFFFFFFFF;
 }
 
-void addSegment(int32_t TBS[], uint8_t pos, uint16_t size) {
+void addSegment(uint32_t TBS[], uint8_t pos, uint16_t size) {
     uint16_t last_size = 0;
     if (pos <= 7) {
         if (pos != 0)
             last_size = TBS[pos - 1] & 0x0000FFFF;
         // verificar que entre en memoria?
-        TBS[pos] = (int32_t)(last_size << 16) | size;
+        TBS[pos] = ((uint32_t)last_size << 16) | size;
     } else {
         printf("ERROR AL AGREGAR SEGMENTO");
         exit(-1);
@@ -56,7 +56,7 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res) {
     fclose(arch);
 }
 
-void uploadMem(char *argv[], int8_t memory[], uint16_t *cs_size, int32_t cs) {
+void uploadMem(char *argv[], uint8_t memory[], uint16_t *cs_size, int32_t cs) {
 
     uint16_t code_size; // guardamos el sizeaño del code en una var de 2bytes
     int8_t res = 0;     // guarda si es posible ejecutar el programa .vmx

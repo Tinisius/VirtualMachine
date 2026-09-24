@@ -14,8 +14,8 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t v_EAX = m->registers[EAX].value; // modo de lectura
 
     int32_t value;
-    int16_t size = highest(v_ECX);
-    int16_t numsAmount = lowest(v_ECX);
+    uint16_t size = highest(v_ECX);
+    uint16_t numsAmount = lowest(v_ECX);
     int error = 0;
     int32_t valueB = OPB & 0xFFFFFF;
 
@@ -120,7 +120,7 @@ void NOT(int32_t OPA, int32_t OPB, type_machine *m) {
     uploadcc(valB, 0, result, m, 0);
 }
 
-void STOP(int32_t OPA, int32_t OPB, type_machine *m) { m->registers[IP].value = 0xFFFFFFFF; }
+void STOP(int32_t OPA, int32_t OPB, type_machine *m) { m->registers[IP].value = -1; }
 
 void MOV(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t value = getOPValue(OPB, m);
@@ -218,7 +218,8 @@ void SHL(int32_t OPA, int32_t OPB, type_machine *m) {
     // se ensancha a 64 bits ANTES de correr para no perder los bits que salen
     // por la izquierda; correr 32 bits o mas vacia la palabra
     int32_t shift = valB < 0 ? 0 : (valB > 32 ? 32 : valB);
-    int64_t value = (int64_t)valA << shift;
+    // se corre sin signo (correr un negativo a la izquierda es UB) y se vuelve a int64
+    int64_t value = (int64_t)((uint64_t)(int64_t)valA << shift);
 
     setOPValue(OPA, m, (int32_t)value);
     uploadcc(valA, valB, value, m, 3);
@@ -231,7 +232,7 @@ void SHR(int32_t OPA, int32_t OPB, type_machine *m) {
     // desplazamiento logico: se corre el valor sin signo para que entren ceros por la izquierda
     // correr 32 bits o mas vacia la palabra
     int32_t value = 0;
-    value = (valB > 0) ? (uint32_t)valA >> valB : valA;
+    value = (valB > 0) ? (int32_t)((uint32_t)valA >> valB) : valA;
 
     setOPValue(OPA, m, value);
     uploadcc(valA, valB, value, m, 3);
@@ -263,7 +264,7 @@ void LDH(int32_t OPA, int32_t OPB, type_machine *m) {
 
     uint16_t lowB = lowest(getOPValue(OPB, m));
 
-    uint32_t value = lowest(getOPValue(OPA, m)) | (lowB << 16);
+    uint32_t value = lowest(getOPValue(OPA, m)) | ((uint32_t)lowB << 16);
 
     setOPValue(OPA, m, value);
 }

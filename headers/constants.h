@@ -44,7 +44,7 @@ typedef struct {
 typedef struct {
     uint8_t memory[N_MEM];
     reg registers[N_REG];
-    int32_t segments[N_SEG];
+    uint32_t segments[N_SEG]; // base (2 bytes altos) y tamaño (2 bytes bajos), sin signo
 
 } type_machine;
 

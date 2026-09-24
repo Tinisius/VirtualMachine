@@ -17,7 +17,7 @@ static void formatOperand(char *buf, type_machine *m, uint8_t type, int32_t raw)
         sprintf(buf, "%d", (int16_t)(raw & 0xFFFF));
         break;
     case 3: {
-        uint16_t offset = (uint16_t)((raw >> 8) & 0xFFFF);
+        int16_t offset = (int16_t)((raw >> 8) & 0xFFFF); // offset con signo
         sprintf(buf, "[%s%+d]", m->registers[raw & 0x1F].name, offset);
         break;
     }

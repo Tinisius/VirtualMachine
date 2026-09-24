@@ -7,12 +7,12 @@ void initMainRegs(reg[]);
 
 void initRegs(reg[]);
 
-void initTableSeg(int32_t[]);
+void initTableSeg(uint32_t[]);
 
-void addSegment(int32_t[], uint8_t, uint16_t);
+void addSegment(uint32_t[], uint8_t, uint16_t);
 
 void readHeader(char[], uint16_t *, int8_t *);
 
-void uploadMem(char *[], int8_t[], uint16_t *, int32_t);
+void uploadMem(char *[], uint8_t[], uint16_t *, int32_t);
 
 #endif
