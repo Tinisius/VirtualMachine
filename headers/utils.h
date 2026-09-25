@@ -25,7 +25,7 @@ int inMem(int32_t physicAdr);
 // indica de que operacion salio (0 logica, 1 suma, 2 resta, 3 resultado ancho)
 void uploadcc(int32_t valA, int32_t valB, int64_t result, type_machine *m, int cc_mode);
 
-int memWrite(int32_t, int16_t, type_machine *, int32_t, int *);
+int memWrite(int32_t, int16_t, type_machine *, int32_t);
 
 uint32_t memRead(int32_t, int16_t, int32_t, type_machine *);
 

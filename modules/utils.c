@@ -49,7 +49,7 @@ int inSegment(int32_t physicAdr, int32_t logicAdr, type_machine *m) {
     return 1;
 }
 
-int memWrite(int32_t logicAdr, int16_t size, type_machine *m, int32_t value, int *error) {
+int memWrite(int32_t logicAdr, int16_t size, type_machine *m, int32_t value) {
     int32_t physicalAdr = obtainPhysicAdr(m, logicAdr);
 
     m->registers[LAR].value = logicAdr;
@@ -60,8 +60,7 @@ int memWrite(int32_t logicAdr, int16_t size, type_machine *m, int32_t value, int
         if (inSegment(physicalAdr + i, logicAdr, m)) {
             m->memory[physicalAdr + i] = ((uint32_t)value >> ((size - i - 1) * 8)) & 0xFF;
         } else {
-            *error = 1;
-            return 1;
+            fatal("FALLO DE SEGMENTO");
         }
     }
     return 0;
@@ -138,7 +137,6 @@ uint32_t getOPLogicAdress(uint32_t op, type_machine *m) {
 
 void setOPValue(uint32_t OP, type_machine *m, int32_t newValue) {
     int8_t typeA = getOpType(OP);
-    int error = 0;
 
     if (typeA == 1) { // registro
         m->registers[OP & 0x1F].value = newValue;
@@ -148,9 +146,7 @@ void setOPValue(uint32_t OP, type_machine *m, int32_t newValue) {
             uint32_t logic = getOPLogicAdress(OP, m);
             m->registers[MBR].value = newValue;
             m->registers[LAR].value = logic;
-            memWrite(logic, 4, m, newValue, &error);
-            if (error)
-                fatal("ERROR DE MEMORIA");
+            memWrite(logic, 4, m, newValue);
         } else
             fatal("NO SE PUEDE ESCRIBIR EN UN OPERANDO INMEDIATO");
     }

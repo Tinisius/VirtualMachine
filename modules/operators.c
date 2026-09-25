@@ -15,7 +15,6 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t value;
     uint16_t size = highest(v_ECX);
     uint16_t numsAmount = lowest(v_ECX);
-    int error = 0;
     int32_t call = getOPValue(OPB, m); // numero de llamada al sistema (acepta inmediato, registro o memoria)
 
     // el tamaño de celda va de 1 a 4 bytes (ademas evita correr 1ULL 64 bits o mas)
@@ -32,9 +31,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
             // trunca value en funcion del size, (1 << 8) - 1 es 0xFF
             value = value & ((1ULL << (size * 8)) - 1);
 
-            memWrite(logicAdr, size, m, value, &error); // escribe en memoria y valida
-            if (error)
-                fatal("ERROR DE MEMORIA");
+            memWrite(logicAdr, size, m, value); // escribe en memoria y valida
         }
     } else if (call == 2) { // WRITE / ESCRITURA (lee de memoria)
         for (int i = 0; i < numsAmount; i++) {
