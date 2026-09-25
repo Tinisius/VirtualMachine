@@ -45,14 +45,14 @@ int main(int argc, char *argv[]) {
         // leemos OPB y guardamos
         int32_t logAdrB = machine.registers[IP].value + 1;
         valueB = memRead(logAdrB, typeB, machine.registers[CS].value, &machine);
-        machine.registers[OP2].value = ((int32_t)typeB << 24) | (valueB & 0x00FFFFFF);
+        machine.registers[OP2].value = typeB == 0 ? 0 : ((int32_t)typeB << 24) | (valueB & 0x00FFFFFF);
 
-        if (typeA > 0) {
-            // leemos OPA y guardamos
-            int32_t logAdrA = logAdrB + typeB;
-            valueA = memRead(logAdrA, typeA, machine.registers[CS].value, &machine);
-            machine.registers[OP1].value = ((int32_t)typeA << 24) | (valueA & 0x00FFFFFF);
-        }
+        // leemos OPA y guardamos
+        int32_t logAdrA = logAdrB + typeB;
+        valueA = memRead(logAdrA, typeA, machine.registers[CS].value, &machine);
+        machine.registers[OP1].value = typeA == 0 ? 0 : ((int32_t)typeA << 24) | (valueA & 0x00FFFFFF);
+
+        
         int instrLen = 1 + typeA + typeB;
         if (disassembler)
             disassembleInstruction(&machine, obtainPhysicAdr(&machine, instrLogDir), instrLen, operators[opC].name, typeA, valueA, typeB, valueB);
