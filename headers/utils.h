@@ -1,6 +1,8 @@
 #include "operators.h"
 #include <constants.h>
 #include <stdint.h>
+#include <ctype.h>
+#include <string.h>
 
 #ifndef UTILS_H
 #define UTILS_H
@@ -50,5 +52,7 @@ void printFormat(int32_t value, int32_t mode, int16_t size);
 void logHeader(char *, char, uint16_t);
 
 void logMachine(type_machine);
+
+int32_t readSysValue(int32_t mode);
 
 #endif

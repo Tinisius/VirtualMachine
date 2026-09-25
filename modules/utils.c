@@ -292,3 +292,49 @@ void logMachine(type_machine machine) {
     }
     printf("\n");
 }
+
+int32_t readSysValue(int32_t mode) {
+    // Si hay varios bits activos se usa el primero en ese orden. Los numeros aceptan
+    // signo y, opcionalmente, el prefijo de su base (0o, 0x, 0b)
+    char line[128];
+    if (fgets(line, sizeof line, stdin) == NULL)
+        fatal("ENTRADA INVALIDA");
+    line[strcspn(line, "\r\n")] = '\0';
+
+    if (mode & 0x02) { // caracter: se guarda su codigo ASCII
+        return (uint8_t)line[0];
+    }
+
+    int base = 10; // decimal (0x01)
+    char prefix = 0;
+    if (!(mode & 0x01)) {
+        if (mode & 0x04)
+            base = 8, prefix = 'o';
+        else if (mode & 0x08)
+            base = 16, prefix = 'x';
+        else if (mode & 0x10)
+            base = 2, prefix = 'b';
+        else
+            fatal("MODO DE LECTURA INVALIDO");
+    }
+
+    char *p = line;
+    while (isspace((unsigned char)*p))  //valida si sos un mono
+        p++;
+    int negative = *p == '-';
+    if (*p == '-' || *p == '+')
+        p++;
+    if (prefix && p[0] == '0' && tolower((unsigned char)p[1]) == prefix)
+        p += 2;
+
+    char *end;
+    errno = 0;
+    long long value = strtoll(p, &end, base);   //valor, castea el string a el numero entero en cuestion, ej: "200   " = 200
+    while (isspace((unsigned char)*end))
+        end++;
+    // tiene que haber al menos un digito, sin otro signo, y nada despues del numero
+    if (*p == '-' || *p == '+' || *end != '\0')
+        fatal("ENTRADA INVALIDA");
+
+    return (int32_t)(uint32_t)(negative ? -value : value);
+}

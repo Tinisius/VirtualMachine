@@ -1,63 +1,10 @@
 #include "../headers/constants.h"
 #include "../headers/utils.h"
-#include <ctype.h>
-#include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 void STOP(int32_t OPA, int32_t OPB, type_machine *m);
-
-// lee una linea del teclado y la interpreta segun el modo de lectura de EAX:
-// 0x01 decimal, 0x02 caracter, 0x04 octal, 0x08 hexadecimal, 0x10 binario.
-// Si hay varios bits activos se usa el primero en ese orden. Los numeros aceptan
-// signo y, opcionalmente, el prefijo de su base (0o, 0x, 0b)
-static int32_t readValue(int32_t mode) {
-    char line[128];
-    if (fgets(line, sizeof line, stdin) == NULL)
-        fatal("ENTRADA INVALIDA");
-    line[strcspn(line, "\r\n")] = '\0';
-
-    if (!(mode & 0x01) && (mode & 0x02)) { // caracter: se guarda su codigo ASCII
-        if (line[0] == '\0')
-            fatal("ENTRADA INVALIDA");
-        return (uint8_t)line[0];
-    }
-
-    int base = 10; // decimal (0x01)
-    char prefix = 0;
-    if (!(mode & 0x01)) {
-        if (mode & 0x04)
-            base = 8, prefix = 'o';
-        else if (mode & 0x08)
-            base = 16, prefix = 'x';
-        else if (mode & 0x10)
-            base = 2, prefix = 'b';
-        else
-            fatal("MODO DE LECTURA INVALIDO");
-    }
-
-    char *p = line;
-    while (isspace((unsigned char)*p))
-        p++;
-    int negative = *p == '-';
-    if (*p == '-' || *p == '+')
-        p++;
-    if (prefix && p[0] == '0' && tolower((unsigned char)p[1]) == prefix)
-        p += 2;
-
-    char *end;
-    errno = 0;
-    long long v = strtoll(p, &end, base);
-    while (isspace((unsigned char)*end))
-        end++;
-    // tiene que haber al menos un digito, sin otro signo, y nada despues del numero
-    if (end == p || *p == '-' || *p == '+' || *end != '\0' || errno == ERANGE)
-        fatal("ENTRADA INVALIDA");
-
-    return (int32_t)(uint32_t)(negative ? -v : v);
-}
 
 void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
 
@@ -80,7 +27,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
             int32_t logicAdr = v_EDX + i * size;
             printf("[%04X]: ", obtainPhysicAdr(m, logicAdr));
             fflush(stdout); // el prompt no termina en \n: se fuerza antes de leer
-            value = readValue(v_EAX);
+            value = readSysValue(v_EAX);
 
             // trunca value en funcion del size, (1 << 8) - 1 es 0xFF
             value = value & ((1ULL << (size * 8)) - 1);
