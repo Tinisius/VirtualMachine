@@ -15,7 +15,7 @@ El programa a ejecutar se encuentra previamente escrito en el lenguaje Assembler
 
 1. Descargar la última versión publicada
 2. Generar un archivo .vmx con el traductor provisto por la cátedra
-3. Ejecutar el archivo VM.exe
+3. Ejecutar el archivo VM.exe (con los parámetros indicados a continuacion)
 
 ### Parámetros
 
