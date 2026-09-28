@@ -41,9 +41,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
             printFormat(value, v_EAX, size);
             printf("\n");
         }
-
-    } else
-        fatal("LLAMADA AL SISTEMA INVALIDA");
+    }
 }
 
 void JMP(int32_t OPA, int32_t OPB, type_machine *m) {
@@ -258,6 +256,4 @@ void RND(int32_t OPA, int32_t OPB, type_machine *m) {
     setOPValue(OPA, m, ran);
 }
 
-void TRASH(int32_t OPA, int32_t OPB, type_machine *m) {
-    fatal("INSTRUCCION INVALIDA");
-}
+void TRASH(int32_t OPA, int32_t OPB, type_machine *m) { fatal("INSTRUCCION INVALIDA"); }
