@@ -36,7 +36,7 @@ void addSegment(uint32_t TBS[], uint8_t pos, uint16_t size) {
         fatal("NO SE PUDO AGREGAR EL SEGMENTO");
 }
 
-void readHeader(char route[], uint16_t *code_size, int8_t *res) {
+void readHeader(char route[], uint16_t *code_size, int8_t *res, uint32_t n_mem) {
     uint8_t line[N_HEADER];
     FILE *arch = fopen(route, "rb");
     if (arch == NULL)
@@ -49,29 +49,29 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res) {
         *code_size = ((uint16_t)line[6] << 8) | line[7];
         // uso memcmp porque line no es una cadena terminada en \0. comparo
         // byte a byte contra ID
-        *res = (memcmp(line, ID, 5) == 0) && (line[5] == VERSION) && ((*code_size) <= N_MEM - 1);
+        *res = (memcmp(line, ID, 5) == 0) && (line[5] == VERSION) && ((*code_size) <= n_mem - 1);
 
     } else
         *res = 0;
     fclose(arch);
 }
 
-void uploadMem(char *argv[], uint8_t memory[], uint16_t *cs_size, int32_t cs) {
+void uploadMem(char route[], type_memory *memory, uint16_t *cs_size, int32_t cs) {
     uint16_t code_size; // guardamos el sizeaño del code en una var de 2bytes
     int8_t res = 0;     // guarda si es posible ejecutar el programa .vmx
 
-    readHeader(*(argv + 1), &code_size, &res);
+    readHeader(route, &code_size, &res, memory->n_mem);
     *cs_size = code_size;
 
     if (!res)
         fatal("CABECERA INVALIDA: EL ARCHIVO NO ES UN PROGRAMA VMX26 VERSION 1");
 
-    FILE *arch = fopen(*(argv + 1), "rb");
+    FILE *arch = fopen(route, "rb");
     if (arch == NULL)
         fatal("NO SE PUDO ABRIR EL ARCHIVO");
     fseek(arch, N_HEADER, SEEK_SET);
 
     // guarda en memoria todo el code segment
-    size_t read = fread(memory + cs, 1, code_size, arch);
+    fread(memory->mem_values + cs, 1, code_size, arch);
     fclose(arch);
 }
