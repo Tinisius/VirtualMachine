@@ -19,11 +19,13 @@ El programa a ejecutar se encuentra previamente escrito en el lenguaje Assembler
 
 ### Parámetros
 
-1. ruta al archivo .vmx [required]
-2. -d [opcional] (habilitar disassembler)
+1. Ruta al archivo `.vmx` [obligatorio]
+2. `-d` [opcional]: habilita el desensamblador
+3. `m=<bytes>` [opcional]: define el tamaño de memoria (por defecto, 16384 bytes)
+4. `-p` [opcional]: indica que los argumentos siguientes son parámetros opcionales
 
 ```
-ruta/al/archivo/VM.exe /ruta/al/archivo/program.vmx -d
+versions/MV.exe ruta/al/archivo/program.vmx m=32000 -d -p valor1 valor2
 ```
 
 ## Integrantes

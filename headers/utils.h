@@ -55,4 +55,6 @@ void logMachine(type_machine);
 
 int32_t readSysValue(int32_t mode);
 
+bool endsWith(char *, char *);
+
 #endif

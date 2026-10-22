@@ -43,7 +43,7 @@ int inSegment(int32_t physicAdr, int32_t logicAdr, type_machine *m) {
     uint16_t base = highest(m->segments[segmIndex]);
     uint16_t size = lowest(m->segments[segmIndex]);
 
-    if (physicAdr < base || physicAdr >= base + size || physicAdr >= N_MEM)
+    if (physicAdr < base || physicAdr >= base + size || physicAdr >= m->memory.n_mem)
         fatal("FALLO DE SEGMENTO");
 
     return 1;
@@ -58,7 +58,7 @@ int memWrite(int32_t logicAdr, int16_t size, type_machine *m, int32_t value) {
 
     for (int i = 0; i < size; i++) {
         if (inSegment(physicalAdr + i, logicAdr, m)) {
-            m->memory[physicalAdr + i] = ((uint32_t)value >> ((size - i - 1) * 8)) & 0xFF;
+            m->memory.mem_values[physicalAdr + i] = ((uint32_t)value >> ((size - i - 1) * 8)) & 0xFF;
         } else {
             fatal("FALLO DE SEGMENTO");
         }
@@ -82,7 +82,7 @@ uint32_t memRead(int32_t logicAdr, int16_t size, int32_t segment, type_machine *
     uint32_t data = 0;
     for (int i = 0; i < size; i++) {
         if (isInstruction || inSegment(physicalAdr + i, logicAdr, m))
-            data |= (uint32_t)m->memory[physicalAdr + i] << ((size - i - 1) * 8);
+            data |= (uint32_t)m->memory.mem_values[physicalAdr + i] << ((size - i - 1) * 8);
     }
 
     if (!isInstruction)
@@ -283,7 +283,7 @@ void logMachine(type_machine machine) {
     // //ESCRIBE MEMORIA
     for (int i = 0; i < 128; i++) {
         printf("%d  ", i);
-        printBin(machine.memory[i], 1);
+        printBin(machine.memory.mem_values[i], 1);
         printf("\n");
     }
     printf("\n");
@@ -333,4 +333,9 @@ int32_t readSysValue(int32_t mode) {
         fatal("ENTRADA INVALIDA");
 
     return (int32_t)(uint32_t)(negative ? -value : value);
+}
+
+bool endsWith(char *s, char *ext) {
+    size_t ls = strlen(s), le = strlen(ext);
+    return ls > le && strcmp(s + ls - le, ext) == 0;
 }
