@@ -9,7 +9,7 @@
 
 int main(int argc, char *argv[]) {
     type_machine machine;
-    uint16_t cs_size;
+    uint16_t cs_size, ds_size, es_size, ss_size, constSeg;
     operatorASM operators[N_OP] = OPERATORS;
     uint8_t disassembler = argc > 2 && strcmp(argv[2], "-d") == 0;
     srand(time(NULL));
@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
 
     initRegs(machine.registers);
     initMainRegs(machine.registers);
-    uploadMem(argv, machine.memory, &cs_size, lowest(machine.registers[CS].value));
+    uploadMem(argv, machine.memory, &cs_size, lowest(machine.registers[CS].value), &ds_size, &es_size, &ss_size, &constSeg);
 
     initTableSeg(machine.segments);
     addSegment(machine.segments, 0, cs_size);         // code segment

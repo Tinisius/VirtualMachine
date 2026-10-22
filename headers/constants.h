@@ -5,7 +5,7 @@
 
 #include <stdint.h> //libreria para estandarizar el tamaño en bytes de los tipos
 
-#define N_HEADER 8
+#define N_HEADER 18
 #define ID "VMX26"
 #define VERSION 1
 

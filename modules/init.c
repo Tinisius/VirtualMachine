@@ -36,8 +36,8 @@ void addSegment(uint32_t TBS[], uint8_t pos, uint16_t size) {
         fatal("NO SE PUDO AGREGAR EL SEGMENTO");
 }
 
-void readHeader(char route[], uint16_t *code_size, int8_t *res) {
-    uint8_t line[N_HEADER];
+void readHeader(char route[], uint16_t *code_size, int8_t *res, uint16_t *ds_size, uint16_t *es_size, uint16_t *ss_size, uint16_t *const_size) {
+    uint8_t line[N_HEADER]; //N_HEADER AHORA VALE 18 BYTES
     FILE *arch = fopen(route, "rb");
     if (arch == NULL)
         fatal("NO SE PUDO ABRIR EL ARCHIVO");
@@ -47,6 +47,11 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res) {
         // Byte 5: version
         // Bytes 6-7: sizeano codigo
         *code_size = ((uint16_t)line[6] << 8) | line[7];
+        *ds_size = ((uint16_t)line[8] << 8) | line[9];
+        *es_size = ((uint16_t)line[10] << 8) | line[11];
+        *ss_size = ((uint16_t)line[12] << 8) | line[13];
+        *const_size = ((uint16_t)line[14] << 8) | line[15];
+
         // uso memcmp porque line no es una cadena terminada en \0. comparo
         // byte a byte contra ID
         *res = (memcmp(line, ID, 5) == 0) && (line[5] == VERSION) && ((*code_size) <= N_MEM - 1);
@@ -56,12 +61,16 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res) {
     fclose(arch);
 }
 
-void uploadMem(char *argv[], uint8_t memory[], uint16_t *cs_size, int32_t cs) {
+void uploadMem(char *argv[], uint8_t memory[], uint16_t *cs_size, int32_t cs, uint16_t *ds, uint16_t *es, uint16_t *ss, uint16_t *constSeg) {
     uint16_t code_size; // guardamos el sizeaño del code en una var de 2bytes
     int8_t res = 0;     // guarda si es posible ejecutar el programa .vmx
-
-    readHeader(*(argv + 1), &code_size, &res);
+    uint16_t ds_size, es_size, ss_size, const_size;
+    readHeader(*(argv + 1), &code_size, &res, &ds_size, &es_size, &ss_size, &const_size);
     *cs_size = code_size;
+    *ds = ds_size;
+    *es = es_size;
+    *ss = ss_size;
+    *constSeg = const_size;
 
     if (!res)
         fatal("CABECERA INVALIDA: EL ARCHIVO NO ES UN PROGRAMA VMX26 VERSION 1");
