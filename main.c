@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
         else if (strcmp(argv[i], "-p") == 0){
             i++;
             params.n_op_params = argc - i;
-            params.optional_params = malloc(params.n_op_params * sizeof(char *));
+            params.optional_params = calloc(params.n_op_params, sizeof(char *));
             if (params.n_op_params > 0 && params.optional_params == NULL)
                 fatal("NO SE PUDIERON RESERVAR LOS PARAMETROS");
             int param_index = 0;
