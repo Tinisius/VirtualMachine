@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdbool.h>
 
 #ifndef UTILS_H
 #define UTILS_H
