@@ -61,7 +61,7 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res, uint16_t *ds_siz
     fclose(arch);
 }
 
-void uploadMem(char *argv[], uint8_t memory[], uint16_t *cs_size, int32_t cs, uint16_t *ds, uint16_t *es, uint16_t *ss, uint16_t *constSeg) {
+void uploadMem(char *argv[], uint8_t *memory, uint16_t *cs_size, int32_t cs, uint16_t *ds, uint16_t *es, uint16_t *ss, uint16_t *constSeg) {
     uint16_t code_size; // guardamos el sizeaño del code en una var de 2bytes
     int8_t res = 0;     // guarda si es posible ejecutar el programa .vmx
     uint16_t ds_size, es_size, ss_size, const_size;

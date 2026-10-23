@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
 
     initRegs(machine.registers);
     initMainRegs(machine.registers);
-    uploadMem(argv, machine.memory, &cs_size, lowest(machine.registers[CS].value), &ds_size, &es_size, &ss_size, &constSeg);
+    uploadMem(argv, machine.memory.mem_values, &cs_size, lowest(machine.registers[CS].value), &ds_size, &es_size, &ss_size, &constSeg);
 
     initTableSeg(machine.segments);
     addSegment(machine.segments, 0, cs_size);         // code segment
