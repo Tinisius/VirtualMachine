@@ -54,7 +54,7 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res, uint16_t *ds_siz
 
         // uso memcmp porque line no es una cadena terminada en \0. comparo
         // byte a byte contra ID
-        *res = (memcmp(line, ID, 5) == 0) && (line[5] == VERSION) && ((*code_size) <= N_MEM - 1);
+        *res = (memcmp(line, ID, 5) == 0) && (line[5] == VERSION) && ((*code_size) <= n_mem - 1);
 
     } else
         *res = 0;
@@ -75,12 +75,12 @@ void uploadMem(char *argv[], uint8_t memory[], uint16_t *cs_size, int32_t cs, ui
     if (!res)
         fatal("CABECERA INVALIDA: EL ARCHIVO NO ES UN PROGRAMA VMX26 VERSION 1");
 
-    FILE *arch = fopen(*(argv + 1), "rb");
+    FILE *arch = fopen(route, "rb");
     if (arch == NULL)
         fatal("NO SE PUDO ABRIR EL ARCHIVO");
     fseek(arch, N_HEADER, SEEK_SET);
 
     // guarda en memoria todo el code segment
-    size_t read = fread(memory + cs, 1, code_size, arch);
+    fread(memory->mem_values + cs, 1, code_size, arch);
     fclose(arch);
 }

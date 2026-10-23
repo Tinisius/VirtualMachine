@@ -11,12 +11,59 @@ int main(int argc, char *argv[]) {
     type_machine machine;
     uint16_t cs_size, ds_size, es_size, ss_size, constSeg;
     operatorASM operators[N_OP] = OPERATORS;
-    uint8_t disassembler = argc > 2 && strcmp(argv[2], "-d") == 0;
     srand(time(NULL));
     int32_t valueA = 0, valueB = 0, instruction;
 
-    if (argc < 2)
-        fatal("FALTA EL ARCHIVO. USO: vmx filename.vmx [-d]");
+    type_entry_params params = {
+        .vmx_file = NULL,
+        .vmi_file = NULL,
+        .n_mem = 16384,
+        .disassembler = false,
+        .optional_params = NULL,
+        .n_op_params = 0
+    };
+
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "-d") == 0) {
+            params.disassembler = true;
+        }
+        else if (endsWith(argv[i], ".vmx")) {
+            params.vmx_file = argv[i];
+        }
+        else if (endsWith(argv[i], ".vmi")) {
+            params.vmi_file = argv[i];
+        }
+        else if (strncmp(argv[i], "m=", 2) == 0 && argv[i][2] != '\0') {
+            int m = atoi(argv[i] + 2);
+            if (m > 0)
+                params.n_mem = m;
+            else
+                fatal("Memoria Insuficiente / memoria invalida");
+        }
+        else if (strcmp(argv[i], "-p") == 0){
+            i++;
+            params.n_op_params = argc - i;
+            params.optional_params = calloc(params.n_op_params, sizeof(char *));
+            if (params.n_op_params > 0 && params.optional_params == NULL)
+                fatal("NO SE PUDIERON RESERVAR LOS PARAMETROS");
+            int param_index = 0;
+
+            while (argv[i]){
+                //printf()
+                params.optional_params[param_index] = argv[i];
+                i++;
+                param_index++;
+            }
+        }
+    }
+
+    if (params.vmx_file == NULL)
+        fatal("FALTA EL ARCHIVO .vmx. USO: vmx filename.vmx [-d]");
+
+    machine.memory.n_mem = params.n_mem;
+    machine.memory.mem_values = calloc(machine.memory.n_mem, sizeof(*machine.memory.mem_values));
+    if (machine.memory.mem_values == NULL)
+        fatal("NO SE PUDO RESERVAR LA MEMORIA");
 
     initRegs(machine.registers);
     initMainRegs(machine.registers);
@@ -24,7 +71,7 @@ int main(int argc, char *argv[]) {
 
     initTableSeg(machine.segments);
     addSegment(machine.segments, 0, cs_size);         // code segment
-    addSegment(machine.segments, 1, N_MEM - cs_size); // data segment
+    addSegment(machine.segments, 1, machine.memory.n_mem - cs_size); // data segment
 
     while (corresponds(&machine)) { // analiza si corresponde leer/seguir
                                     // leyendo las instruciones
@@ -53,7 +100,7 @@ int main(int argc, char *argv[]) {
 
         
         int instrLen = 1 + typeA + typeB;
-        if (disassembler)
+        if (params.disassembler)
             disassembleInstruction(&machine, obtainPhysicAdr(&machine, instrLogDir), instrLen, operators[opC].name, typeA, valueA, typeB, valueB);
 
         // pasamos a la sig instruccion
@@ -64,5 +111,7 @@ int main(int argc, char *argv[]) {
     }
     // logMachine(machine);
 
+    free(machine.memory.mem_values);
+    free(params.optional_params);
     return 0;
 }

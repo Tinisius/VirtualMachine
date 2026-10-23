@@ -9,7 +9,6 @@
 #define ID "VMX26"
 #define VERSION 1
 
-#define N_MEM 16384
 #define N_SEG 8
 #define N_REG 32
 #define N_OP 32
@@ -42,11 +41,24 @@ typedef struct {
 } reg;
 
 typedef struct {
-    uint8_t memory[N_MEM];
+    uint8_t *mem_values;
+    uint32_t n_mem;
+} type_memory;
+
+typedef struct {
+    type_memory memory;
     reg registers[N_REG];
     uint32_t segments[N_SEG]; // base (2 bytes altos) y tamaño (2 bytes bajos), sin signo
-
 } type_machine;
+
+typedef struct {
+    char *vmx_file;
+    char *vmi_file;
+    uint32_t n_mem;
+    uint8_t disassembler;
+    char **optional_params;
+    uint8_t n_op_params;
+} type_entry_params;
 
 // proteccion estandar
 #endif
