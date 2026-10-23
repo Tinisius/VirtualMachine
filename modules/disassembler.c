@@ -32,8 +32,8 @@ static void formatOperand(char *buf, type_machine *m, uint8_t type, int32_t raw)
 void disassembleInstruction(type_machine *m, int32_t physicDir, int instrLen, char *mnem, uint8_t typeA, int32_t valueA, uint8_t typeB, int32_t valueB) {
     printf("[%04X] ", physicDir);
     int col = 7; // ancho de "[XXXX] "
-    for (int i = 0; i < instrLen && physicDir + i < N_MEM; i++) {
-        printf("%02X ", m->memory[physicDir + i]);
+    for (int i = 0; i < instrLen && physicDir + i < m->memory.n_mem; i++) {
+        printf("%02X ", m->memory.mem_values[physicDir + i]);
         col += 3;
     }
     // relleno con tabs hasta COL_BYTES para que los | queden alineados
