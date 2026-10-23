@@ -6,9 +6,16 @@
 
 void initMainRegs(reg regs[]) {
     regs[IP].value = 0;
-    regs[CS].value = 0;
-    regs[DS].value = 0x00010000;
+    int i;
+    for(i=26;i<=31;i++)
+        regs[IP].value=0xFFFFFFFFF;
+    
 }
+
+void initRegSegment(int i,int r,reg regs[]){
+    regs[r].value= (uint32_t)i << 16;
+}
+
 
 void initRegs(reg regs[]) {
     char *names[N_REG] = REG_NAMES;
@@ -54,26 +61,23 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res, uint16_t *ds_siz
 
         // uso memcmp porque line no es una cadena terminada en \0. comparo
         // byte a byte contra ID
-        *res = (memcmp(line, ID, 5) == 0) && (line[5] == VERSION) && ((*code_size) <= n_mem - 1);
+        *res = (memcmp(line, ID, 5) == 0) && (line[5] == VERSION);
 
     } else
         *res = 0;
     fclose(arch);
 }
 
-void uploadMem(char *argv[], uint8_t *memory, uint16_t *cs_size, int32_t cs, uint16_t *ds, uint16_t *es, uint16_t *ss, uint16_t *constSeg) {
-    uint16_t code_size; // guardamos el sizeaño del code en una var de 2bytes
+void uploadMem(char route[], type_machine *mv, uint16_t *cs_size, int32_t cs, uint16_t *ds, uint16_t *es, uint16_t *ss, uint16_t *constSeg) {
+
     int8_t res = 0;     // guarda si es posible ejecutar el programa .vmx
-    uint16_t ds_size, es_size, ss_size, const_size;
-    readHeader(*(argv + 1), &code_size, &res, &ds_size, &es_size, &ss_size, &const_size);
-    *cs_size = code_size;
-    *ds = ds_size;
-    *es = es_size;
-    *ss = ss_size;
-    *constSeg = const_size;
+    
+    readHeader(route, cs_size, &res, ds, es, ss, constSeg);
 
     if (!res)
         fatal("CABECERA INVALIDA: EL ARCHIVO NO ES UN PROGRAMA VMX26 VERSION 1");
+    if (*cs_size > mv->memory.n_mem)
+        fatal("espacio insuficiente");
 
     FILE *arch = fopen(route, "rb");
     if (arch == NULL)
@@ -81,6 +85,6 @@ void uploadMem(char *argv[], uint8_t *memory, uint16_t *cs_size, int32_t cs, uin
     fseek(arch, N_HEADER, SEEK_SET);
 
     // guarda en memoria todo el code segment
-    fread(memory->mem_values + cs, 1, code_size, arch);
+    fread(mv->memory.mem_values + cs, 1, *cs_size, arch);
     fclose(arch);
 }
