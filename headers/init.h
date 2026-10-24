@@ -17,4 +17,6 @@ void readHeader(char[], uint16_t *, int8_t *, uint16_t *, uint16_t *, uint16_t *
 
 void uploadMem(char [], type_machine*, uint16_t *, int32_t, uint16_t *, uint16_t *, uint16_t *, uint16_t *);
 
+void calculateSegments(type_machine *machine,int paraMainSizes,char route[]);
+
 #endif
