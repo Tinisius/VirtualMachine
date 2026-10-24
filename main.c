@@ -80,39 +80,8 @@ int main(int argc, char *argv[]) {
 
     initRegs(machine.registers);
     initMainRegs(machine.registers);
-    uploadMem(params.vmx_file, &machine, &cs_size, lowest(machine.registers[CS].value), &ds_size, &es_size, &ss_size, &constSeg);
+    calculateSegments(&machine,paraMainSizes,params.vmx_file);
 
-    initTableSeg(machine.segments);
-    int i=0;
-    if(paraMainSizes != 0){
-        addSegment(machine.segments,i,paraMainSizes);
-        initRegSegment(i,PS,machine.registers);
-        i++;
-    }
-    if (constSeg != 0){
-        addSegment(machine.segments,i,constSeg);
-        initRegSegment(i,KS,machine.registers);
-        i++;
-    }
-    addSegment(machine.segments, i, cs_size);
-    initRegSegment(i,CS,machine.registers);
-    i++;
-    addSegment(machine.segments, i, machine.memory.n_mem - cs_size); // data segment
-    initRegSegment(i,DS,machine.registers);
-    i++;
-
-    if(es_size != 0){
-        addSegment(machine.segments,i,es_size);
-        initRegSegment(i,ES,machine.registers);
-        i++;
-    }
-    if(ss_size !=0){
-        addSegment(machine.segments,i++,ss_size);
-        initRegSegment(i,SS,machine.registers);
-        i++;
-    }
-
-    
     while (corresponds(&machine)) { // analiza si corresponde leer/seguir
                                     // leyendo las instruciones
 
