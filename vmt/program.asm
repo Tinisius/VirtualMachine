@@ -1,3 +1,4 @@
+NULL EQU -1
 inicio:
     ; Escribimos separados por 4 bytes para no pisarnos[cite: 2]
     MOV [0], 'H'       

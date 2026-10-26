@@ -1,10 +1,10 @@
 #include "../headers/utils.h"
 #include "../headers/constants.h"
 #include "../headers/operators.h"
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
 uint16_t highest(uint32_t x) { return (x >> 16) & 0xFFFF; }
 
@@ -316,7 +316,7 @@ int32_t readSysValue(int32_t mode) {
     }
 
     char *p = line;
-    while (isspace((unsigned char)*p))  //valida si sos un mono
+    while (isspace((unsigned char)*p)) // valida si sos un mono
         p++;
     int negative = *p == '-';
     if (*p == '-' || *p == '+')
@@ -326,7 +326,7 @@ int32_t readSysValue(int32_t mode) {
 
     char *end;
     errno = 0;
-    long long value = strtoll(p, &end, base);   //valor, castea el string a el numero entero en cuestion, ej: "200   " = 200
+    long long value = strtoll(p, &end, base); // valor, castea el string a el numero entero en cuestion, ej: "200   " = 200
     while (isspace((unsigned char)*end))
         end++;
     // tiene que haber al menos un digito, sin otro signo, y nada despues del numero
