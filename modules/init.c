@@ -5,17 +5,12 @@
 #include <string.h>
 
 void initMainRegs(reg regs[]) {
-    regs[IP].value = 0;
     int i;
-    for(i=26;i<=31;i++)
-        regs[IP].value=0xFFFFFFFFF;
-    
+    for (i = CS; i <= PS; i++)
+        regs[i].value = 0xFFFFFFFFF;
 }
 
-void initRegSegment(int i,int r,reg regs[]){
-    regs[r].value= (uint32_t)i << 16;
-}
-
+void initRegSegment(int i, int r, reg regs[]) { regs[r].value = (uint32_t)i << 16; }
 
 void initRegs(reg regs[]) {
     char *names[N_REG] = REG_NAMES;
@@ -44,7 +39,7 @@ void addSegment(uint32_t TBS[], uint8_t pos, uint16_t size) {
 }
 
 void readHeader(char route[], uint16_t *code_size, int8_t *res, uint16_t *ds_size, uint16_t *es_size, uint16_t *ss_size, uint16_t *const_size) {
-    uint8_t line[N_HEADER]; //N_HEADER AHORA VALE 18 BYTES
+    uint8_t line[N_HEADER]; // N_HEADER AHORA VALE 18 BYTES
     FILE *arch = fopen(route, "rb");
     if (arch == NULL)
         fatal("NO SE PUDO ABRIR EL ARCHIVO");
@@ -61,6 +56,7 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res, uint16_t *ds_siz
 
         // uso memcmp porque line no es una cadena terminada en \0. comparo
         // byte a byte contra ID
+
         *res = (memcmp(line, ID, 5) == 0) && (line[5] == VERSION);
 
     } else
@@ -78,54 +74,50 @@ void uploadMem(char route[], type_machine *mv, uint16_t *cs_size, int32_t cs, ui
     // guarda en memoria todo el code segment
     fread(mv->memory.mem_values + cs, 1, *cs_size, arch);
     fclose(arch);
-    
 }
 
-void calculateSegments(type_machine *machine,int paraMainSizes,char route[]){
+void calculateSegments(type_machine *machine, int paraMainSizes, char route[]) {
     int8_t res = 0;
     uint16_t cs_size, ds_size, es_size, ss_size, constSeg;
-    
+
     readHeader(route, &cs_size, &res, &ds_size, &es_size, &ss_size, &constSeg);
-     if (!res)
+    if (!res)
         fatal("CABECERA INVALIDA: EL ARCHIVO NO ES UN PROGRAMA VMX26 VERSION 1");
     if (cs_size > machine->memory.n_mem)
         fatal("espacio insuficiente");
-    
+
     initTableSeg(machine->segments);
 
-    int i=0;
-    if(paraMainSizes != 0){
-        addSegment(machine->segments,i,paraMainSizes);
-        initRegSegment(i,PS,machine->registers);
+    int i = 0;
+    if (paraMainSizes != 0) {
+        addSegment(machine->segments, i, paraMainSizes);
+        initRegSegment(i, PS, machine->registers);
         i++;
     }
-    if (constSeg != 0){
-        addSegment(machine->segments,i,constSeg);
-        initRegSegment(i,KS,machine->registers);
+    if (constSeg != 0) {
+        addSegment(machine->segments, i, constSeg);
+        initRegSegment(i, KS, machine->registers);
         i++;
     }
-    //se añade el cs
+    // se añade el cs
     int physbasecs = (i == 0) ? 0 : highest(machine->segments[i - 1]) + lowest(machine->segments[i - 1]);
-    uploadMem(route, &machine, &cs_size, physbasecs, &ds_size, &es_size, &ss_size, &constSeg);
+    uploadMem(route, machine, &cs_size, physbasecs, &ds_size, &es_size, &ss_size, &constSeg);
     addSegment(machine->segments, i, cs_size);
-    initRegSegment(i,CS,machine->registers);
+    initRegSegment(i, CS, machine->registers);
     i++;
-    //se añade el ds
+    // se añade el ds
     addSegment(machine->segments, i, ds_size); // data segment
-    initRegSegment(i,DS,machine->registers);
+    initRegSegment(i, DS, machine->registers);
     i++;
 
-    if(es_size != 0){
-        addSegment(machine->segments,i,es_size);
-        initRegSegment(i,ES,machine->registers);
+    if (es_size != 0) {
+        addSegment(machine->segments, i, es_size);
+        initRegSegment(i, ES, machine->registers);
         i++;
     }
-    if(ss_size !=0){
-        addSegment(machine->segments,i,ss_size);
-        initRegSegment(i,SS,machine->registers);
+    if (ss_size != 0) {
+        addSegment(machine->segments, i, ss_size);
+        initRegSegment(i, SS, machine->registers);
         i++;
     }
-
-
-
 }

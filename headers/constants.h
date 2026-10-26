@@ -9,7 +9,7 @@
 
 #define N_HEADER 18
 #define ID "VMX26"
-#define VERSION 1
+#define VERSION 2
 
 #define N_SEG 8
 #define N_REG 32
@@ -39,7 +39,7 @@
 #define PS 31
 
 #define REG_NAMES                                                                                                                                                                                      \
-    {"IP", "OPC", "OP1", "OP2", "LAR", "MAR", "MBR", "-", "-", "-", "EAX", "EBX", "ECX", "EDX", "EEX", "EFX", "AC", "CC", "-", "-", "-", "-", "-", "-", "-", "-", "CS", "DS", "-", "-", "-", "-"}
+    {"IP", "OPC", "OP1", "OP2", "LAR", "MAR", "MBR", "SP", "BP", "-", "EAX", "EBX", "ECX", "EDX", "EEX", "EFX", "AC", "CC", "-", "-", "-", "-", "-", "-", "-", "-", "CS", "DS", "ES", "SS", "KS", "PS"}
 
 typedef struct {
     char *name;

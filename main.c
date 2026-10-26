@@ -14,34 +14,22 @@ int main(int argc, char *argv[]) {
     srand(time(NULL));
     int32_t valueA = 0, valueB = 0, instruction;
 
-    type_entry_params params = {
-        .vmx_file = NULL,
-        .vmi_file = NULL,
-        .n_mem = MEM_DEFAULT,
-        .disassembler = false,
-        .optional_params = NULL,
-        .n_op_params = 0
-    };
-    
+    type_entry_params params = {.vmx_file = NULL, .vmi_file = NULL, .n_mem = MEM_DEFAULT, .disassembler = false, .optional_params = NULL, .n_op_params = 0};
 
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-d") == 0) {
             params.disassembler = true;
-        }
-        else if (endsWith(argv[i], ".vmx")) {
+        } else if (endsWith(argv[i], ".vmx")) {
             params.vmx_file = argv[i];
-        }
-        else if (endsWith(argv[i], ".vmi")) {
+        } else if (endsWith(argv[i], ".vmi")) {
             params.vmi_file = argv[i];
-        }
-        else if (strncmp(argv[i], "m=", 2) == 0 && argv[i][2] != '\0') {
+        } else if (strncmp(argv[i], "m=", 2) == 0 && argv[i][2] != '\0') {
             int m = atoi(argv[i] + 2);
             if (m > 0)
                 params.n_mem = m;
             else
                 fatal("Memoria Insuficiente / memoria invalida");
-        }
-        else if (strcmp(argv[i], "-p") == 0){
+        } else if (strcmp(argv[i], "-p") == 0) {
             i++;
             params.n_op_params = argc - i;
             params.optional_params = calloc(params.n_op_params, sizeof(char *));
@@ -49,8 +37,8 @@ int main(int argc, char *argv[]) {
                 fatal("NO SE PUDIERON RESERVAR LOS PARAMETROS");
             int param_index = 0;
 
-            while (argv[i]){
-                //printf()
+            while (argv[i]) {
+                // printf()
                 params.optional_params[param_index] = argv[i];
 
                 i++;
@@ -63,14 +51,14 @@ int main(int argc, char *argv[]) {
         fatal("FALTA EL ARCHIVO .vmx. USO: vmx filename.vmx [-d]");
     int paraMainSizes = 0;
 
-    if(params.n_op_params > 0){
+    if (params.n_op_params > 0) {
         paraMainSizes += strlen(params.vmx_file) + 1;
-    
-    // sumamos cada parametro extra y 1 byte del \0
-    for (int j = 0; j < params.n_op_params; j++) 
-        paraMainSizes += strlen(params.optional_params[j]) + 1;
 
-        paraMainSizes += ( 1 + params.n_op_params) * 4; //4 bytes por cada texto (1 del vmx lo demas de n_op_params)
+        // sumamos cada parametro extra y 1 byte del \0
+        for (int j = 0; j < params.n_op_params; j++)
+            paraMainSizes += strlen(params.optional_params[j]) + 1;
+
+        paraMainSizes += (1 + params.n_op_params) * 4; // 4 bytes por cada texto (1 del vmx lo demas de n_op_params)
     }
 
     machine.memory.n_mem = params.n_mem;
@@ -80,8 +68,8 @@ int main(int argc, char *argv[]) {
 
     initRegs(machine.registers);
     initMainRegs(machine.registers);
-    calculateSegments(&machine,paraMainSizes,params.vmx_file);
-
+    calculateSegments(&machine, paraMainSizes, params.vmx_file);
+    machine.registers[IP].value = machine.registers[CS].value;
     while (corresponds(&machine)) { // analiza si corresponde leer/seguir
                                     // leyendo las instruciones
 
@@ -107,7 +95,6 @@ int main(int argc, char *argv[]) {
         valueA = memRead(logAdrA, typeA, machine.registers[CS].value, &machine);
         machine.registers[OP1].value = typeA == 0 ? 0 : ((int32_t)typeA << 24) | (valueA & 0x00FFFFFF);
 
-        
         int instrLen = 1 + typeA + typeB;
         if (params.disassembler)
             disassembleInstruction(&machine, obtainPhysicAdr(&machine, instrLogDir), instrLen, operators[opC].name, typeA, valueA, typeB, valueB);
@@ -118,7 +105,7 @@ int main(int argc, char *argv[]) {
         // invocamos la operacion
         operators[opC].operation(machine.registers[OP1].value, machine.registers[OP2].value, &machine);
     }
-    // logMachine(machine);
+    logMachine(machine);
 
     free(machine.memory.mem_values);
     free(params.optional_params);
