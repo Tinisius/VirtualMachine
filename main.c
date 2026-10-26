@@ -8,8 +8,8 @@
 #include <time.h>
 
 int main(int argc, char *argv[]) {
-    type_machine machine = {0};
-    uint16_t cs_size;
+    type_machine machine;
+    uint16_t cs_size, ds_size, es_size, ss_size, constSeg;
     operatorASM operators[N_OP] = OPERATORS;
     srand(time(NULL));
     int32_t valueA = 0, valueB = 0, instruction;
@@ -17,11 +17,12 @@ int main(int argc, char *argv[]) {
     type_entry_params params = {
         .vmx_file = NULL,
         .vmi_file = NULL,
-        .n_mem = 16384,
+        .n_mem = MEM_DEFAULT,
         .disassembler = false,
         .optional_params = NULL,
         .n_op_params = 0
     };
+    
 
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-d") == 0) {
@@ -51,6 +52,7 @@ int main(int argc, char *argv[]) {
             while (argv[i]){
                 //printf()
                 params.optional_params[param_index] = argv[i];
+
                 i++;
                 param_index++;
             }
@@ -59,6 +61,17 @@ int main(int argc, char *argv[]) {
 
     if (params.vmx_file == NULL)
         fatal("FALTA EL ARCHIVO .vmx. USO: vmx filename.vmx [-d]");
+    int paraMainSizes = 0;
+
+    if(params.n_op_params > 0){
+        paraMainSizes += strlen(params.vmx_file) + 1;
+    
+    // sumamos cada parametro extra y 1 byte del \0
+    for (int j = 0; j < params.n_op_params; j++) 
+        paraMainSizes += strlen(params.optional_params[j]) + 1;
+
+        paraMainSizes += ( 1 + params.n_op_params) * 4; //4 bytes por cada texto (1 del vmx lo demas de n_op_params)
+    }
 
     machine.memory.n_mem = params.n_mem;
     machine.memory.mem_values = calloc(machine.memory.n_mem, sizeof(*machine.memory.mem_values));
@@ -67,11 +80,7 @@ int main(int argc, char *argv[]) {
 
     initRegs(machine.registers);
     initMainRegs(machine.registers);
-    uploadMem(params.vmx_file, &machine.memory, &cs_size, lowest(machine.registers[CS].value));
-
-    initTableSeg(machine.segments);
-    addSegment(machine.segments, 0, cs_size);         // code segment
-    addSegment(machine.segments, 1, machine.memory.n_mem - cs_size); // data segment
+    calculateSegments(&machine,paraMainSizes,params.vmx_file);
 
     while (corresponds(&machine)) { // analiza si corresponde leer/seguir
                                     // leyendo las instruciones

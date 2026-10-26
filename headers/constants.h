@@ -5,7 +5,9 @@
 
 #include <stdint.h> //libreria para estandarizar el tamaño en bytes de los tipos
 
-#define N_HEADER 8
+#define MEM_DEFAULT 16384
+
+#define N_HEADER 18
 #define ID "VMX26"
 #define VERSION 1
 
@@ -31,6 +33,10 @@
 #define CC 17
 #define CS 26
 #define DS 27
+#define ES 28
+#define SS 29
+#define KS 30
+#define PS 31
 
 #define REG_NAMES                                                                                                                                                                                      \
     {"IP", "OPC", "OP1", "OP2", "LAR", "MAR", "MBR", "-", "-", "-", "EAX", "EBX", "ECX", "EDX", "EEX", "EFX", "AC", "CC", "-", "-", "-", "-", "-", "-", "-", "-", "CS", "DS", "-", "-", "-", "-"}

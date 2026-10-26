@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 uint16_t highest(uint32_t x) { return (x >> 16) & 0xFFFF; }
 
