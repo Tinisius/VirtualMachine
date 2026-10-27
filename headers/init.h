@@ -5,7 +5,7 @@
 
 void initMainRegs(reg[]);
 
-void initRegSegment(int i,int r,reg regs[]);
+void initRegSegment(int i, int r, reg regs[]);
 
 void initRegs(reg[]);
 
@@ -13,10 +13,10 @@ void initTableSeg(uint32_t[]);
 
 void addSegment(uint32_t[], uint8_t, uint16_t);
 
-void readHeader(char[], uint16_t *, int8_t *, uint16_t *, uint16_t *, uint16_t *, uint16_t *);
+void readHeader(char[], uint16_t *, int8_t *, uint16_t *, uint16_t *, uint16_t *, uint16_t *, uint16_t *);
 
-void uploadMem(char [], type_machine*, uint16_t *, int32_t, uint16_t *, uint16_t *, uint16_t *, uint16_t *);
+void uploadMem(type_machine *, type_entry_params);
 
-void calculateSegments(type_machine *machine,int paraMainSizes,char route[]);
+void calculateSegments(type_machine *machine, int paraMainSizes, char route[]);
 
 #endif

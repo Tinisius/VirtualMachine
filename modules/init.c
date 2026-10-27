@@ -38,7 +38,7 @@ void addSegment(uint32_t TBS[], uint8_t pos, uint16_t size) {
         fatal("NO SE PUDO AGREGAR EL SEGMENTO");
 }
 
-void readHeader(char route[], uint16_t *code_size, int8_t *res, uint16_t *ds_size, uint16_t *es_size, uint16_t *ss_size, uint16_t *const_size) {
+void readHeader(char route[], uint16_t *code_size, int8_t *res, uint16_t *ds_size, uint16_t *es_size, uint16_t *ss_size, uint16_t *const_size, uint16_t *entry_point) {
     uint8_t line[N_HEADER]; // N_HEADER AHORA VALE 18 BYTES
     FILE *arch = fopen(route, "rb");
     if (arch == NULL)
@@ -53,6 +53,8 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res, uint16_t *ds_siz
         *es_size = ((uint16_t)line[10] << 8) | line[11];
         *ss_size = ((uint16_t)line[12] << 8) | line[13];
         *const_size = ((uint16_t)line[14] << 8) | line[15];
+        // Bytes 16-17: entry point (offset dentro del code segment)
+        *entry_point = ((uint16_t)line[16] << 8) | line[17];
 
         // uso memcmp porque line no es una cadena terminada en \0. comparo
         // byte a byte contra ID
@@ -64,23 +66,56 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res, uint16_t *ds_siz
     fclose(arch);
 }
 
-void uploadMem(char route[], type_machine *mv, uint16_t *cs_size, int32_t cs, uint16_t *ds, uint16_t *es, uint16_t *ss, uint16_t *constSeg) {
+void uploadMem(type_machine *mv, type_entry_params params) {
 
-    FILE *arch = fopen(route, "rb");
+    FILE *arch = fopen(params.vmx_file, "rb");
     if (arch == NULL)
         fatal("NO SE PUDO ABRIR EL ARCHIVO");
     fseek(arch, N_HEADER, SEEK_SET);
 
-    // guarda en memoria todo el code segment
-    fread(mv->memory.mem_values + cs, 1, *cs_size, arch);
+    if (params.n_op_params > 0) {
+        int32_t ps = mv->registers[PS].value;
+
+        uint32_t strings_size = 0;
+        for (int i = 0; i <= params.n_op_params; i++)
+            strings_size += strlen(i == 0 ? params.vmx_file : params.optional_params[i - 1]) + 1;
+
+        int32_t argv_adr = ps + strings_size;
+        uint32_t offset = 0;
+        for (int k = 0; k <= params.n_op_params; k++) {
+            char *str = (k == 0) ? params.vmx_file : params.optional_params[k - 1];
+            size_t len = strlen(str);
+
+            memWrite(argv_adr + 4 * k, 4, mv, ps + offset);
+            for (size_t j = 0; j <= len; j++)
+                memWrite(ps + offset + j, 1, mv, str[j]);
+            offset += len + 1;
+        }
+    }
+
+    uint32_t cs = mv->segments[highest(mv->registers[CS].value)];
+
+    if (highest(cs) + lowest(cs) > mv->memory.n_mem)
+        fatal("espacio insuficiente");
+    if (fread(mv->memory.mem_values + highest(cs), 1, lowest(cs), arch) != lowest(cs))
+        fatal("NO SE PUDO LEER EL CODE SEGMENT");
+
+    if (highest(mv->registers[KS].value) < N_SEG) {
+        uint32_t ks = mv->segments[highest(mv->registers[KS].value)];
+        if (highest(ks) + lowest(ks) > mv->memory.n_mem)
+            fatal("espacio insuficiente");
+        if (fread(mv->memory.mem_values + highest(ks), 1, lowest(ks), arch) != lowest(ks))
+            fatal("NO SE PUDO LEER EL CONST SEGMENT");
+    }
+
     fclose(arch);
 }
 
 void calculateSegments(type_machine *machine, int paraMainSizes, char route[]) {
     int8_t res = 0;
-    uint16_t cs_size, ds_size, es_size, ss_size, constSeg;
+    uint16_t cs_size, ds_size, es_size, ss_size, constSeg, entry_point;
 
-    readHeader(route, &cs_size, &res, &ds_size, &es_size, &ss_size, &constSeg);
+    readHeader(route, &cs_size, &res, &ds_size, &es_size, &ss_size, &constSeg, &entry_point);
     if (!res)
         fatal("CABECERA INVALIDA: EL ARCHIVO NO ES UN PROGRAMA VMX26 VERSION 1");
     if (cs_size > machine->memory.n_mem)
@@ -101,9 +136,12 @@ void calculateSegments(type_machine *machine, int paraMainSizes, char route[]) {
     }
     // se añade el cs
     int physbasecs = (i == 0) ? 0 : highest(machine->segments[i - 1]) + lowest(machine->segments[i - 1]);
-    uploadMem(route, machine, &cs_size, physbasecs, &ds_size, &es_size, &ss_size, &constSeg);
     addSegment(machine->segments, i, cs_size);
     initRegSegment(i, CS, machine->registers);
+    if (entry_point >= cs_size)
+        fatal("ENTRY POINT FUERA DEL CODE SEGMENT");
+    // la ejecucion arranca en el entry point, no necesariamente en el offset 0
+    machine->registers[IP].value = machine->registers[CS].value | entry_point;
     i++;
     // se añade el ds
     addSegment(machine->segments, i, ds_size); // data segment
