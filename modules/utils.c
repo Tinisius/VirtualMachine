@@ -151,7 +151,7 @@ uint32_t getOPLogicAdress(uint32_t op, type_machine *m) {
 }
 
 void setOPValue(uint32_t op, type_machine *m, int32_t newValue) {
-    int8_t typeA = getopType(op);
+    int8_t typeA = getOpType(op);
 
     if (typeA == 1) {                        // operando de registro
         uint8_t reg_size = (op >> 5) & 0x03; // modificador de tamaño
@@ -169,7 +169,7 @@ void setOPValue(uint32_t op, type_machine *m, int32_t newValue) {
         m->registers[op & 0x1F].value = newValue;
     } else {
         if (typeA == 3) { // operando de memoria
-            uint32_t logicAdr = getopLogicAdress(op, m);
+            uint32_t logicAdr = getOPLogicAdress(op, m);
             m->registers[MBR].value = newValue;
             m->registers[LAR].value = logicAdr;
             uint8_t mem_size = (op >> 5) & 0x07; // modificador de tamaño
