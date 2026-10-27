@@ -156,6 +156,7 @@ void calculateSegments(type_machine *machine, int paraMainSizes, char route[]) {
     if (ss_size != 0) {
         addSegment(machine->segments, i, ss_size);
         initRegSegment(i, SS, machine->registers);
+        machine->registers[SP].value = ( (uint32_t) i << 16) | (ss_size & 0xFFFF);
         i++;
     }
 }
