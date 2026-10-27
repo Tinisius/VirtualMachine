@@ -114,14 +114,14 @@ int32_t getOPValue(uint32_t op, type_machine *m) {
     if (type_op != 2) {
         if (type_op == 3) { // operando de memoria
             value = m->registers[MBR].value;
-            mem_size = (op >> 5) & 0x07; // modificador de tamaño
+            uint8_t mem_size = (op >> 5) & 0x07; // modificador de tamaño
             memRead(getOPLogicAdress(op, m), mem_size, m->registers[DS].value, m);
 
         } else { // operando de registro
             uint8_t reg = op & 0x1F;
             value = m->registers[reg].value;
 
-            reg_size = (op >> 5) & 0x03; // modificador de tamaño
+            uint8_t reg_size = (op >> 5) & 0x03; // modificador de tamaño
             switch (reg_size) {
             case 1: // AL (4to byte)
                 value = value & 0xFF;
@@ -153,8 +153,8 @@ uint32_t getOPLogicAdress(uint32_t op, type_machine *m) {
 void setOPValue(uint32_t op, type_machine *m, int32_t newValue) {
     int8_t typeA = getopType(op);
 
-    if (typeA == 1) {                // operando de registro
-        reg_size = (op >> 5) & 0x03; // modificador de tamaño
+    if (typeA == 1) {                        // operando de registro
+        uint8_t reg_size = (op >> 5) & 0x03; // modificador de tamaño
         switch (reg_size) {
         case 1: // AL (4to byte)
             newValue = newValue & 0xFF;
@@ -171,8 +171,8 @@ void setOPValue(uint32_t op, type_machine *m, int32_t newValue) {
         if (typeA == 3) { // operando de memoria
             uint32_t logicAdr = getopLogicAdress(op, m);
             m->registers[MBR].value = newValue;
-            m->registers[LAR].value = logic;
-            mem_size = (op >> 5) & 0x07; // modificador de tamaño
+            m->registers[LAR].value = logicAdr;
+            uint8_t mem_size = (op >> 5) & 0x07; // modificador de tamaño
             memWrite(logicAdr, mem_size, m, newValue);
         } else
             fatal("NO   SE PUEDE ESCRIBIR EN UN OPERANDO INMEDIATO");
