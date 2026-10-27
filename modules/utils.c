@@ -347,3 +347,39 @@ bool endsWith(char *s, char *ext) {
     size_t ls = strlen(s), le = strlen(ext);
     return ls > le && strcmp(s + ls - le, ext) == 0;
 }
+
+int sizeObtain(int32_t OP){
+    uint8_t type = OP>>24 &0XFF;
+    int size;
+
+    switch (type)
+    {
+        case 1: {//registro
+                uint8_t sector = (OP >> 5) & 0x03;
+                if(sector == 0b00)
+                    size=4;
+                else
+                    if(sector == 0b11)
+                        size=2;
+                    else
+                        size=1;
+                 break;
+        }
+        case 2:{ //inmediato
+            size=2;
+            break;
+        }
+        case 3:{ //memoria
+                uint8_t mod = (OP >> 5) & 0x07;
+                if(mod == 0b001)
+                    size=1; //b[..]
+                else
+                    if(mod == 0b010)
+                        size=2; // W[..]
+                    else
+                        size=4; // [..] o l[..]
+                break;
+        }
+    }
+    return size;
+}

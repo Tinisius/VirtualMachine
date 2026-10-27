@@ -256,4 +256,32 @@ void RND(int32_t OPA, int32_t OPB, type_machine *m) {
     setOPValue(OPA, m, ran);
 }
 
-void TRASH(int32_t OPA, int32_t OPB, type_machine *m) { fatal("INSTRUCCION INVALIDA"); }
+void PUSH(int32_t OPA, int32_t OPB,type_machine *m){
+    int opSize = sizeObtain(OPA);
+    int32_t val = getOPValue(OPA,m);
+    uint16_t seg = (m->registers[SP].value >> 16 ) & 0xFFFF;
+    int32_t offset = (int32_t) (m->registers[SP].value & 0xFFFF);
+    offset-=4;
+    if (offset < 0) 
+        fatal("STACK OVERFLOW: Se ha superado el límite del segmento de pila");
+    
+    m->registers[SP].value=((uint32_t)seg << 16) | (offset & 0xFFFF);
+
+    if (opSize == 1)
+        val = (int8_t)val;
+    else
+        if(opSize == 2)
+        val = (int16_t)val;
+    uint32_t dirPhy = highest(m->segments[seg])+(uint32_t)offset;
+    m->memory.mem_values[dirPhy] = (uint8_t)(val >> 24);
+    m->memory.mem_values[dirPhy+1] = (uint8_t)(val >> 16);
+    m->memory.mem_values[dirPhy+2] = (uint8_t)(val >> 8);
+    m->memory.mem_values[dirPhy+3] = (uint8_t)(val & 0xFF);
+
+}
+
+
+
+
+
+//void TRASH(int32_t OPA, int32_t OPB, type_machine *m) { fatal("INSTRUCCION INVALIDA"); }

@@ -13,13 +13,16 @@ typedef struct operatorASM {
 #define OPERATORS                                                                                                                                                                                      \
     {                                                                                                                                                                                                  \
         {"SYS", 0x00, SYS}, {"JMP", 0x01, JMP}, {"JP", 0x02, JP}, {"JN", 0x03, JN}, {"JZ", 0x04, JZ}, {"JC", 0x05, JC}, {"JV", 0x06, JV}, {"JNP", 0x07, JNP}, {"JNN", 0x08, JNN}, {"JNZ", 0x09, JNZ},  \
-            {"NOT", 0x0A, NOT}, {"", 0x0B, TRASH}, {"", 0x0C, TRASH}, {"", 0x0D, TRASH}, {"", 0x0E, TRASH}, {"STOP", 0x0F, STOP}, {"MOV", 0x10, MOV}, {"ADD", 0x11, ADD}, {"SUB", 0x12, SUB},          \
+            {"NOT", 0x0A, NOT}, {"PUSH", 0x0B, PUSH}, {"POP", 0x0C, POP}, {"CALL", 0x0D, CALL}, {"RET", 0x0E, RET}, {"STOP", 0x0F, STOP}, {"MOV", 0x10, MOV}, {"ADD", 0x11, ADD}, {"SUB", 0x12, SUB},  \
             {"MUL", 0x13, MUL}, {"DIV", 0x14, DIV}, {"CMP", 0x15, CMP}, {"AND", 0x16, AND}, {"OR", 0x17, OR}, {"XOR", 0x18, XOR}, {"SWAP", 0x19, SWAP}, {"SHL", 0x1A, SHL}, {"SHR", 0x1B, SHR},        \
             {"SAR", 0x1C, SAR}, {"LDL", 0x1D, LDL}, {"LDH", 0x1E, LDH}, {                                                                                                                              \
             "RND", 0x1F, RND                                                                                                                                                                           \
         }                                                                                                                                                                                              \
     }
 
+void PUSH(int32_t,int32_t,type_machine*);
+void POP (int32_t,int32_t,type_machine*);
+void CALL(int32_t,int32_t,type_machine*);
 void SYS(int32_t, int32_t, type_machine *);
 void JMP(int32_t, int32_t, type_machine *);
 void JP(int32_t, int32_t, type_machine *);
@@ -33,6 +36,7 @@ void JNZ(int32_t, int32_t, type_machine *);
 void NOT(int32_t, int32_t, type_machine *);
 
 void STOP(int32_t, int32_t, type_machine *);
+void RET(int32_t,int32_t,type_machine*);
 
 void MOV(int32_t, int32_t, type_machine *);
 void ADD(int32_t, int32_t, type_machine *);
