@@ -280,6 +280,30 @@ void PUSH(int32_t OPA, int32_t OPB,type_machine *m){
 
 }
 
+void CALL(int32_t OPA,int32_t OPB, type_machine *m){
+    int32_t val = getOPValue(OPA,m);
+
+    uint16_t seg = (m->registers[SP].value >> 16 ) & 0xFFFF;
+    int32_t offset = (int32_t) (m->registers[SP].value & 0xFFFF);
+
+    offset-=4;
+    if (offset < 0) 
+        fatal("STACK OVERFLOW: Se ha superado el límite del segmento de pila");
+    
+    m->registers[SP].value=((uint32_t)seg << 16) | (offset & 0xFFFF);
+
+    uint32_t act_ip = m->registers[IP].value;
+
+    uint32_t dirPhy = highest(m->segments[seg])+(uint32_t)offset;
+    m->memory.mem_values[dirPhy] = (uint8_t)(act_ip >> 24);
+    m->memory.mem_values[dirPhy+1] = (uint8_t)(act_ip >> 16);
+    m->memory.mem_values[dirPhy+2] = (uint8_t)(act_ip >> 8);
+    m->memory.mem_values[dirPhy+3] = (uint8_t)(act_ip & 0xFF);
+
+    m->registers[IP].value = (m->registers[IP].value & 0xFFFF0000) | ((uint32_t) val &  0xFFFF) ;
+
+}
+
 
 
 
