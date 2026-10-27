@@ -281,12 +281,19 @@ void logMachine(type_machine machine) {
         printf("\n");
     }
     printf("\n");
-    // //ESCRIBE MEMORIA
+    // //ESCRIBE SEGMENTOS
+    for (int i = 0; i < N_SEG; i++) {
+        printf("%d  ", i);
+        printBin(machine.segments[i], 4);
+        printf("\n");
+    }
+    // ESCRIBE MEMORIA
     for (int i = 0; i < 128; i++) {
         printf("%d  ", i);
         printBin(machine.memory.mem_values[i], 1);
         printf("\n");
     }
+
     printf("\n");
 }
 

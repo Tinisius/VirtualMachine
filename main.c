@@ -69,7 +69,8 @@ int main(int argc, char *argv[]) {
     initRegs(machine.registers);
     initMainRegs(machine.registers);
     calculateSegments(&machine, paraMainSizes, params.vmx_file);
-    machine.registers[IP].value = machine.registers[CS].value;
+    uploadMem(&machine, params);
+
     while (corresponds(&machine)) { // analiza si corresponde leer/seguir
                                     // leyendo las instruciones
 
