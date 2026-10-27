@@ -256,6 +256,37 @@ void RND(int32_t OPA, int32_t OPB, type_machine *m) {
     setOPValue(OPA, m, ran);
 }
 
+void POP(int32_t OPA,int32_t OPB,type_machine *m){
+     int opSize = sizeObtain(OPA);
+
+    uint16_t seg = (m->registers[SP].value >> 16 ) & 0xFFFF;
+    int32_t offset = (int32_t) (m->registers[SP].value & 0xFFFF);
+    
+    if (offset +4 > lowest(m->segments[seg]) ) 
+        fatal("STACK underflow: querias hacer pop de una pila vacia");
+
+    uint32_t dirPhy = highest(m->segments[seg])+(uint32_t)offset;
+
+    uint8_t b0 = m->memory.mem_values[dirPhy];
+    uint8_t b1 = m->memory.mem_values[dirPhy+1];
+    uint8_t b2 = m->memory.mem_values[dirPhy+2];
+    uint8_t b3 = m->memory.mem_values[dirPhy+3];
+    int32_t val = ((uint32_t)b0 << 24) | ((uint32_t)b1 << 16) | ((uint32_t)b2 << 8) | (uint32_t)b3;
+
+    if (opSize == 1)
+        val = val & 0xFF;
+    else
+        if(opSize == 2)
+             val = val & 0xFFFF;
+    
+    
+    offset+=4; 
+    m->registers[SP].value=((uint32_t)seg << 16) | (offset & 0xFFFF);
+
+     setOPValue(OPA,m,val);
+    
+}
+
 void PUSH(int32_t OPA, int32_t OPB,type_machine *m){
     int opSize = sizeObtain(OPA);
     int32_t val = getOPValue(OPA,m);
