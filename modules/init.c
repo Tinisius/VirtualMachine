@@ -56,14 +56,16 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res, uint16_t *ds_siz
     } else
         *res = 0;
 
-    if (fread(line + N_HEADER_V1, 1, N_HEADER_V2 - N_HEADER_V1, arch) == N_HEADER_V2 - N_HEADER_V1) {
+    if (*version == 2) {
+        if (fread(line + N_HEADER_V1, 1, N_HEADER_V2 - N_HEADER_V1, arch) == N_HEADER_V2 - N_HEADER_V1) {
 
-        *ds_size = ((uint16_t)line[8] << 8) | line[9];
-        *es_size = ((uint16_t)line[10] << 8) | line[11];
-        *ss_size = ((uint16_t)line[12] << 8) | line[13];
-        *const_size = ((uint16_t)line[14] << 8) | line[15];
-        // Bytes 16-17: entry point (offset dentro del code segment)
-        *entry_point = ((uint16_t)line[16] << 8) | line[17];
+            *ds_size = ((uint16_t)line[8] << 8) | line[9];
+            *es_size = ((uint16_t)line[10] << 8) | line[11];
+            *ss_size = ((uint16_t)line[12] << 8) | line[13];
+            *const_size = ((uint16_t)line[14] << 8) | line[15];
+            // Bytes 16-17: entry point (offset dentro del code segment)
+            *entry_point = ((uint16_t)line[16] << 8) | line[17];
+        }
     }
     fclose(arch);
 }
