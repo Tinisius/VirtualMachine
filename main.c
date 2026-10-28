@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
     operatorASM operators[N_OP] = OPERATORS;
     srand(time(NULL));
     int32_t valueA = 0, valueB = 0, instruction;
-
+    uint8_t version;
     type_entry_params params = {.vmx_file = NULL, .vmi_file = NULL, .n_mem = MEM_DEFAULT, .disassembler = false, .optional_params = NULL, .n_op_params = 0};
 
     for (int i = 1; i < argc; i++) {
@@ -68,8 +68,8 @@ int main(int argc, char *argv[]) {
 
     initRegs(machine.registers);
     initMainRegs(machine.registers);
-    calculateSegments(&machine, paraMainSizes, params.vmx_file);
-    uploadMem(&machine, params);
+    calculateSegments(&machine, paraMainSizes, params.vmx_file, &version);
+    uploadMem(&machine, params, version);
 
     while (corresponds(&machine)) { // analiza si corresponde leer/seguir
                                     // leyendo las instruciones
