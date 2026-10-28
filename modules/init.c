@@ -38,40 +38,43 @@ void addSegment(uint32_t TBS[], uint8_t pos, uint16_t size) {
         fatal("NO SE PUDO AGREGAR EL SEGMENTO");
 }
 
-void readHeader(char route[], uint16_t *code_size, int8_t *res, uint16_t *ds_size, uint16_t *es_size, uint16_t *ss_size, uint16_t *const_size, uint16_t *entry_point) {
-    uint8_t line[N_HEADER]; // N_HEADER AHORA VALE 18 BYTES
+void readHeader(char route[], uint16_t *code_size, int8_t *res, uint16_t *ds_size, uint16_t *es_size, uint16_t *ss_size, uint16_t *const_size, uint16_t *entry_point, uint8_t *version) {
+    uint8_t line[N_HEADER_V2]; // N_HEADER AHORA VALE 18 BYTES
     FILE *arch = fopen(route, "rb");
+
     if (arch == NULL)
         fatal("NO SE PUDO ABRIR EL ARCHIVO");
-
-    if (fread(line, 1, N_HEADER, arch) == N_HEADER) {
+    if (fread(line, 1, N_HEADER_V1, arch) == N_HEADER_V1) {
         // Bytes 0-4: identificador "VMX26"
         // Byte 5: version
-        // Bytes 6-7: sizeano codigo
+        // Bytes 6-7: tamaño codigo
+        *version = line[5];
         *code_size = ((uint16_t)line[6] << 8) | line[7];
+        // uso memcmp porque line no es una cadena terminada en \0. comparo
+        // byte a byte contra ID
+        *res = (memcmp(line, ID, 5) == 0) && (*version == 1 || *version == 2);
+    } else
+        *res = 0;
+
+    if (fread(line + N_HEADER_V1, 1, N_HEADER_V2 - N_HEADER_V1, arch) == N_HEADER_V2 - N_HEADER_V1) {
+
         *ds_size = ((uint16_t)line[8] << 8) | line[9];
         *es_size = ((uint16_t)line[10] << 8) | line[11];
         *ss_size = ((uint16_t)line[12] << 8) | line[13];
         *const_size = ((uint16_t)line[14] << 8) | line[15];
         // Bytes 16-17: entry point (offset dentro del code segment)
         *entry_point = ((uint16_t)line[16] << 8) | line[17];
-
-        // uso memcmp porque line no es una cadena terminada en \0. comparo
-        // byte a byte contra ID
-
-        *res = (memcmp(line, ID, 5) == 0) && (line[5] == 1 || line[5] == 2);
-
-    } else
-        *res = 0;
+    }
     fclose(arch);
 }
 
-void uploadMem(type_machine *mv, type_entry_params params) {
-
+void uploadMem(type_machine *mv, type_entry_params params, uint8_t version) {
+    uint8_t offset = version == 1 ? N_HEADER_V1 : N_HEADER_V2;
     FILE *arch = fopen(params.vmx_file, "rb");
     if (arch == NULL)
         fatal("NO SE PUDO ABRIR EL ARCHIVO");
-    fseek(arch, N_HEADER, SEEK_SET);
+
+    fseek(arch, offset, SEEK_SET);
 
     if (params.n_op_params > 0) {
         int32_t ps = mv->registers[PS].value;
@@ -111,11 +114,11 @@ void uploadMem(type_machine *mv, type_entry_params params) {
     fclose(arch);
 }
 
-void calculateSegments(type_machine *machine, int paraMainSizes, char route[]) {
+void calculateSegments(type_machine *machine, int paraMainSizes, char route[], uint8_t *version) {
     int8_t res = 0;
     uint16_t cs_size, ds_size, es_size, ss_size, constSeg, entry_point;
 
-    readHeader(route, &cs_size, &res, &ds_size, &es_size, &ss_size, &constSeg, &entry_point);
+    readHeader(route, &cs_size, &res, &ds_size, &es_size, &ss_size, &constSeg, &entry_point, version);
     if (!res)
         fatal("CABECERA INVALIDA: EL ARCHIVO NO ES UN PROGRAMA VMX26 VERSION VALIDA");
     if (cs_size > machine->memory.n_mem)
