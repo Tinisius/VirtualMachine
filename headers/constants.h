@@ -23,6 +23,8 @@
 #define LAR 4
 #define MAR 5
 #define MBR 6
+#define SP  7
+#define BP  8
 #define EAX 10
 #define EBX 11
 #define ECX 12
