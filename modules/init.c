@@ -59,7 +59,7 @@ void readHeader(char route[], uint16_t *code_size, int8_t *res, uint16_t *ds_siz
         // uso memcmp porque line no es una cadena terminada en \0. comparo
         // byte a byte contra ID
 
-        *res = (memcmp(line, ID, 5) == 0) && (line[5] == VERSION);
+        *res = (memcmp(line, ID, 5) == 0) && (line[5] == 1 || line[5] == 2);
 
     } else
         *res = 0;
@@ -117,7 +117,7 @@ void calculateSegments(type_machine *machine, int paraMainSizes, char route[]) {
 
     readHeader(route, &cs_size, &res, &ds_size, &es_size, &ss_size, &constSeg, &entry_point);
     if (!res)
-        fatal("CABECERA INVALIDA: EL ARCHIVO NO ES UN PROGRAMA VMX26 VERSION 1");
+        fatal("CABECERA INVALIDA: EL ARCHIVO NO ES UN PROGRAMA VMX26 VERSION VALIDA");
     if (cs_size > machine->memory.n_mem)
         fatal("espacio insuficiente");
 
@@ -156,7 +156,7 @@ void calculateSegments(type_machine *machine, int paraMainSizes, char route[]) {
     if (ss_size != 0) {
         addSegment(machine->segments, i, ss_size);
         initRegSegment(i, SS, machine->registers);
-        machine->registers[SP].value = ( (uint32_t) i << 16) | (ss_size & 0xFFFF);
+        machine->registers[SP].value = ((uint32_t)i << 16) | (ss_size & 0xFFFF);
         i++;
     }
 }
