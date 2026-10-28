@@ -47,8 +47,8 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (params.vmx_file == NULL)
-        fatal("FALTA EL ARCHIVO .vmx. USO: vmx filename.vmx [-d]");
+    if (params.vmx_file == NULL && params.vmi_file == NULL)
+        fatal("Es necesario un archivo .vmx y/o .vmi");
     int paraMainSizes = 0;
 
     if (params.n_op_params > 0) {
@@ -68,9 +68,10 @@ int main(int argc, char *argv[]) {
 
     initRegs(machine.registers);
     initMainRegs(machine.registers);
+
     calculateSegments(&machine, paraMainSizes, params.vmx_file, &version);
     uploadMem(&machine, params, version);
-
+    genVMI(machine);
     while (corresponds(&machine)) { // analiza si corresponde leer/seguir
                                     // leyendo las instruciones
 

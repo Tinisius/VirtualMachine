@@ -41,7 +41,8 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
             printFormat(value, v_EAX, size);
             printf("\n");
         }
-    }
+    } else if (call == 15)
+        genVMI(*m);
 }
 
 void JMP(int32_t OPA, int32_t OPB, type_machine *m) {
@@ -256,114 +257,99 @@ void RND(int32_t OPA, int32_t OPB, type_machine *m) {
     setOPValue(OPA, m, ran);
 }
 
-void POP(int32_t OPA,int32_t OPB,type_machine *m){
-     int opSize = sizeObtain(OPA);
+void POP(int32_t OPA, int32_t OPB, type_machine *m) {
+    int opSize = sizeObtain(OPA);
 
-    uint16_t seg = (m->registers[SP].value >> 16 ) & 0xFFFF;
-    int32_t offset = (int32_t) (m->registers[SP].value & 0xFFFF);
-    
-    if (offset +4 > lowest(m->segments[seg]) ) 
+    uint16_t seg = (m->registers[SP].value >> 16) & 0xFFFF;
+    int32_t offset = (int32_t)(m->registers[SP].value & 0xFFFF);
+
+    if (offset + 4 > lowest(m->segments[seg]))
         fatal("STACK underflow: querias hacer pop de una pila vacia");
 
-    uint32_t dirPhy = highest(m->segments[seg])+(uint32_t)offset;
+    uint32_t dirPhy = highest(m->segments[seg]) + (uint32_t)offset;
 
     uint8_t b0 = m->memory.mem_values[dirPhy];
-    uint8_t b1 = m->memory.mem_values[dirPhy+1];
-    uint8_t b2 = m->memory.mem_values[dirPhy+2];
-    uint8_t b3 = m->memory.mem_values[dirPhy+3];
+    uint8_t b1 = m->memory.mem_values[dirPhy + 1];
+    uint8_t b2 = m->memory.mem_values[dirPhy + 2];
+    uint8_t b3 = m->memory.mem_values[dirPhy + 3];
     int32_t val = ((uint32_t)b0 << 24) | ((uint32_t)b1 << 16) | ((uint32_t)b2 << 8) | (uint32_t)b3;
 
     if (opSize == 1)
         val = val & 0xFF;
-    else
-        if(opSize == 2)
-             val = val & 0xFFFF;
-    
-    
-    offset+=4; 
-    m->registers[SP].value=((uint32_t)seg << 16) | (offset & 0xFFFF);
+    else if (opSize == 2)
+        val = val & 0xFFFF;
 
-     setOPValue(OPA,m,val);
-    
+    offset += 4;
+    m->registers[SP].value = ((uint32_t)seg << 16) | (offset & 0xFFFF);
+
+    setOPValue(OPA, m, val);
 }
 
-void PUSH(int32_t OPA, int32_t OPB,type_machine *m){
+void PUSH(int32_t OPA, int32_t OPB, type_machine *m) {
     int opSize = sizeObtain(OPA);
-    int32_t val = getOPValue(OPA,m);
-    uint16_t seg = (m->registers[SP].value >> 16 ) & 0xFFFF;
-    int32_t offset = (int32_t) (m->registers[SP].value & 0xFFFF);
-    offset-=4;
-    if (offset < 0) 
+    int32_t val = getOPValue(OPA, m);
+    uint16_t seg = (m->registers[SP].value >> 16) & 0xFFFF;
+    int32_t offset = (int32_t)(m->registers[SP].value & 0xFFFF);
+    offset -= 4;
+    if (offset < 0)
         fatal("STACK OVERFLOW: Se ha superado el límite del segmento de pila");
-    
-    m->registers[SP].value=((uint32_t)seg << 16) | (offset & 0xFFFF);
+
+    m->registers[SP].value = ((uint32_t)seg << 16) | (offset & 0xFFFF);
 
     if (opSize == 1)
         val = (int8_t)val;
-    else
-        if(opSize == 2)
+    else if (opSize == 2)
         val = (int16_t)val;
-    uint32_t dirPhy = highest(m->segments[seg])+(uint32_t)offset;
+    uint32_t dirPhy = highest(m->segments[seg]) + (uint32_t)offset;
     m->memory.mem_values[dirPhy] = (uint8_t)(val >> 24);
-    m->memory.mem_values[dirPhy+1] = (uint8_t)(val >> 16);
-    m->memory.mem_values[dirPhy+2] = (uint8_t)(val >> 8);
-    m->memory.mem_values[dirPhy+3] = (uint8_t)(val & 0xFF);
-
+    m->memory.mem_values[dirPhy + 1] = (uint8_t)(val >> 16);
+    m->memory.mem_values[dirPhy + 2] = (uint8_t)(val >> 8);
+    m->memory.mem_values[dirPhy + 3] = (uint8_t)(val & 0xFF);
 }
 
-void CALL(int32_t OPA,int32_t OPB, type_machine *m){
-    int32_t val = getOPValue(OPA,m);
+void CALL(int32_t OPA, int32_t OPB, type_machine *m) {
+    int32_t val = getOPValue(OPA, m);
 
-    uint16_t seg = (m->registers[SP].value >> 16 ) & 0xFFFF;
-    int32_t offset = (int32_t) (m->registers[SP].value & 0xFFFF);
+    uint16_t seg = (m->registers[SP].value >> 16) & 0xFFFF;
+    int32_t offset = (int32_t)(m->registers[SP].value & 0xFFFF);
 
-    offset-=4;
-    if (offset < 0) 
+    offset -= 4;
+    if (offset < 0)
         fatal("STACK OVERFLOW: Se ha superado el límite del segmento de pila");
-    
-    m->registers[SP].value=((uint32_t)seg << 16) | (offset & 0xFFFF);
+
+    m->registers[SP].value = ((uint32_t)seg << 16) | (offset & 0xFFFF);
 
     uint32_t act_ip = m->registers[IP].value;
 
-    uint32_t dirPhy = highest(m->segments[seg])+(uint32_t)offset;
+    uint32_t dirPhy = highest(m->segments[seg]) + (uint32_t)offset;
     m->memory.mem_values[dirPhy] = (uint8_t)(act_ip >> 24);
-    m->memory.mem_values[dirPhy+1] = (uint8_t)(act_ip >> 16);
-    m->memory.mem_values[dirPhy+2] = (uint8_t)(act_ip >> 8);
-    m->memory.mem_values[dirPhy+3] = (uint8_t)(act_ip & 0xFF);
+    m->memory.mem_values[dirPhy + 1] = (uint8_t)(act_ip >> 16);
+    m->memory.mem_values[dirPhy + 2] = (uint8_t)(act_ip >> 8);
+    m->memory.mem_values[dirPhy + 3] = (uint8_t)(act_ip & 0xFF);
 
-    m->registers[IP].value = (m->registers[IP].value & 0xFFFF0000) | ((uint32_t) val &  0xFFFF) ;
-
+    m->registers[IP].value = (m->registers[IP].value & 0xFFFF0000) | ((uint32_t)val & 0xFFFF);
 }
 
-void RET(int32_t OPA,int32_t OPB, type_machine *m){
+void RET(int32_t OPA, int32_t OPB, type_machine *m) {
 
-    uint16_t seg = (m->registers[SP].value >> 16 ) & 0xFFFF;
-    int32_t offset = (int32_t) (m->registers[SP].value & 0xFFFF);
+    uint16_t seg = (m->registers[SP].value >> 16) & 0xFFFF;
+    int32_t offset = (int32_t)(m->registers[SP].value & 0xFFFF);
 
-    
-    if (offset +4 > lowest(m->segments[seg]) ) 
+    if (offset + 4 > lowest(m->segments[seg]))
         fatal("STACK underflow: querias hacer pop de una pila vacia");
-    
 
-
-    uint32_t dirPhy = highest(m->segments[seg])+(uint32_t)offset;
+    uint32_t dirPhy = highest(m->segments[seg]) + (uint32_t)offset;
 
     uint8_t b0 = m->memory.mem_values[dirPhy];
-    uint8_t b1 = m->memory.mem_values[dirPhy+1];
-    uint8_t b2 = m->memory.mem_values[dirPhy+2];
-    uint8_t b3 = m->memory.mem_values[dirPhy+3];
+    uint8_t b1 = m->memory.mem_values[dirPhy + 1];
+    uint8_t b2 = m->memory.mem_values[dirPhy + 2];
+    uint8_t b3 = m->memory.mem_values[dirPhy + 3];
     int32_t val = ((uint32_t)b0 << 24) | ((uint32_t)b1 << 16) | ((uint32_t)b2 << 8) | (uint32_t)b3;
 
-    offset+=4;
-    m->registers[SP].value=((uint32_t)seg << 16) | (offset & 0xFFFF);
-
+    offset += 4;
+    m->registers[SP].value = ((uint32_t)seg << 16) | (offset & 0xFFFF);
 
     m->registers[IP].value = val;
-
 }
 
-
-
-
-
-//void TRASH(int32_t OPA, int32_t OPB, type_machine *m) { fatal("INSTRUCCION INVALIDA"); }
+// void TRASH(int32_t OPA, int32_t OPB, type_machine *m) { fatal("INSTRUCCION INVALIDA"); }
