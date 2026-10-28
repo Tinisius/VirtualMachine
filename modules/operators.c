@@ -45,15 +45,31 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
         }
         break;
     case 3: // String READ (escribe en memoria)
+        printf("[%04X]: ", obtainPhysicAdr(m, v_EDX));
+        fflush(stdout); // limpia el buffer
+        char *str;      // el string a escribir en memoria
+        uint16_t n = readSysString(str, v_ECX);
+        for (int i = 0; i <= n; i++) {
+            memWrite(v_EDX + i, 1, m, str[i]);
+        };
         break;
     case 4: // String WRITE (lee de memoria)
+        uint8_t i = 0;
+        char c;
+        do {
+            c = memRead(v_EDX + i, 1, m->registers[DS].value, m);
+            printf("%c", c);
+            i++;
+        } while (c != 0);
+        printf("\n");
         break;
     case 0: // Clear Screen
+        system("cls");
         break;
     case 15: // (breakpoint) Francoooo
         break;
     default:
-        // code block
+        fatal("CODIGO DE SYS INVALIDO");
     }
 }
 
