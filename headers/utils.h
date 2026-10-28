@@ -58,4 +58,6 @@ int32_t readSysValue(int32_t mode);
 
 bool endsWith(char *, char *);
 
+int sizeObtain(int32_t OP);
+
 #endif
