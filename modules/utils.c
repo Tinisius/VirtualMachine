@@ -302,19 +302,20 @@ void logHeader(char *id, char v, uint16_t code_size) {
 
 void logMachine(type_machine machine) {
     // ESCRIBE REGISTROS
-    printf("\n");
+    printf("REGISTROS: \n");
     for (int i = 0; i < N_REG; i++) {
         printf("%s \t", machine.registers[i].name, machine.registers[i].value);
         printBin(machine.registers[i].value, 4);
         printf("\n");
     }
-    printf("\n");
+    printf("SEGMENTOS: \n");
     // //ESCRIBE SEGMENTOS
     for (int i = 0; i < N_SEG; i++) {
         printf("%d  ", i);
         printBin(machine.segments[i], 4);
         printf("\n");
     }
+    printf("MEMORIA: \n");
     // ESCRIBE MEMORIA
     for (int i = 0; i < 128; i++) {
         printf("%d  ", i);
@@ -371,6 +372,22 @@ int32_t readSysValue(int32_t mode) {
     return (int32_t)(uint32_t)(negative ? -value : value);
 }
 
+// Lee una linea en dest (capacidad cap). Devuelve el largo, o -1 si fallo.
+uint16_t readSysString(char *str, uint16_t maxSize) {
+    if (maxSize == 0 || fgets(str, (int)maxSize + 1, stdin) == NULL) // lee la linea, guarad en str
+        fatal("ENTRADA INVALIDA");
+
+    uint16_t len = strcspn(str, "\r\n"); // el largo del string, "hola\0" => 4
+
+    if (str[len] == '\0' && len == maxSize - 1) { // si termina en \0 (deberia terminar en \n) y el buffer se lleno
+        int c;
+        while ((c = getchar()) != '\n' && c != EOF) // la linea no entro completa: descartar el resto hasta el salto
+            ;
+    }
+    str[len] = '\0'; // agrega el \0 al final (remplaza el \n)
+    return len;
+}
+
 bool endsWith(char *s, char *ext) {
     size_t ls = strlen(s), le = strlen(ext);
     return ls > le && strcmp(s + ls - le, ext) == 0;
@@ -407,4 +424,32 @@ int sizeObtain(int32_t OP) {
     }
     }
     return size;
+}
+
+void genVMI(type_machine mv) {
+
+    FILE *vmi_file = fopen(mv.vmi_file, "wb");
+
+    if (vmi_file == NULL)
+        fatal("NO SE PUEDE CREAR EL ARCHIVO VMI");
+
+    uint16_t mem_kib = mv.memory.n_mem / 1024;
+    uint8_t header[8] = {'V', 'M', 'I', '2', '6', 1, (mem_kib >> 8) & 0xFF, mem_kib & 0xFF};
+    fwrite(header, 1, sizeof(header), vmi_file);
+
+    for (int i = 0; i < N_REG; i++) {
+        uint32_t value = (uint32_t)mv.registers[i].value;
+        uint8_t bytes[4] = {(value >> 24) & 0xFF, (value >> 16) & 0xFF, (value >> 8) & 0xFF, value & 0xFF};
+        fwrite(bytes, 1, 4, vmi_file);
+    }
+
+    for (int i = 0; i < N_SEG; i++) {
+        uint32_t value = mv.segments[i];
+        uint8_t bytes[4] = {(value >> 24) & 0xFF, (value >> 16) & 0xFF, (value >> 8) & 0xFF, value & 0xFF};
+        fwrite(bytes, 1, 4, vmi_file);
+    }
+
+    fwrite(mv.memory.mem_values, 1, mv.memory.n_mem, vmi_file);
+
+    fclose(vmi_file);
 }
