@@ -47,8 +47,10 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (params.vmx_file == NULL)
+    if (params.vmx_file == NULL) {
         fatal("FALTA EL ARCHIVO .vmx. USO: vmx filename.vmx [-d]");
+    }
+
     int paraMainSizes = 0;
 
     if (params.n_op_params > 0) {
@@ -69,10 +71,8 @@ int main(int argc, char *argv[]) {
     initRegs(machine.registers);
     initMainRegs(machine.registers);
     calculateSegments(&machine, paraMainSizes, params.vmx_file, &version);
-    uploadMem(&machine, params, version);
 
-    while (corresponds(&machine)) { // analiza si corresponde leer/seguir
-                                    // leyendo las instruciones
+    while (corresponds(&machine)) { // analiza si corresponde leer/seguir leyendo las instruciones
 
         int32_t instrLogDir = machine.registers[IP].value;
 

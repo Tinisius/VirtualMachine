@@ -179,6 +179,8 @@ void setOPValue(uint32_t op, type_machine *m, int32_t newValue) {
     }
 }
 
+// actualiza N, Z, C y V del registro CC; result viene sin truncar y cc_mode
+// indica de que operacion salio (0 logica, 1 suma, 2 resta, 3 resultado ancho)
 // N, Z, C y V son los bits 31, 30, 29 y 28 del CC (el resto es reservado).
 //
 // result es el resultado de la operacion SIN truncar a 32 bits, porque el modo 3
@@ -374,38 +376,35 @@ bool endsWith(char *s, char *ext) {
     return ls > le && strcmp(s + ls - le, ext) == 0;
 }
 
-int sizeObtain(int32_t OP){
-    uint8_t type = OP>>24 &0XFF;
+int sizeObtain(int32_t OP) {
+    uint8_t type = OP >> 24 & 0XFF;
     int size;
 
-    switch (type)
-    {
-        case 1: {//registro
-                uint8_t sector = (OP >> 5) & 0x03;
-                if(sector == 0b00)
-                    size=4;
-                else
-                    if(sector == 0b11)
-                        size=2;
-                    else
-                        size=1;
-                 break;
-        }
-        case 2:{ //inmediato
-            size=2;
-            break;
-        }
-        case 3:{ //memoria
-                uint8_t mod = (OP >> 5) & 0x07;
-                if(mod == 0b001)
-                    size=1; //b[..]
-                else
-                    if(mod == 0b010)
-                        size=2; // W[..]
-                    else
-                        size=4; // [..] o l[..]
-                break;
-        }
+    switch (type) {
+    case 1: { // registro
+        uint8_t sector = (OP >> 5) & 0x03;
+        if (sector == 0b00)
+            size = 4;
+        else if (sector == 0b11)
+            size = 2;
+        else
+            size = 1;
+        break;
+    }
+    case 2: { // inmediato
+        size = 2;
+        break;
+    }
+    case 3: { // memoria
+        uint8_t mod = (OP >> 5) & 0x07;
+        if (mod == 0b001)
+            size = 1; // b[..]
+        else if (mod == 0b010)
+            size = 2; // W[..]
+        else
+            size = 4; // [..] o l[..]
+        break;
+    }
     }
     return size;
 }
