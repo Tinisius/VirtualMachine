@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
 
         paraMainSizes += (1 + params.n_op_params) * 4; // 4 bytes por cada texto (1 del vmx lo demas de n_op_params)
     }
-
+    machine.vmi_file = params.vmi_file;
     initRegs(machine.registers);
 
     if (params.vmx_file == NULL)
@@ -75,11 +75,11 @@ int main(int argc, char *argv[]) {
         calculateSegments(&machine, paraMainSizes, params.vmx_file, &version);
         uploadMem(&machine, params, version);
     }
-    genVMI(machine);
+    if (params.disassembler)
+        disassemble(&machine, operators);
+
     while (corresponds(&machine)) { // analiza si corresponde leer/seguir
                                     // leyendo las instruciones
-
-        int32_t instrLogDir = machine.registers[IP].value;
 
         // leemos la instruccion (con segment = CS, memRead no modifica LAR, MAR ni MBR)
         instruction = memRead(machine.registers[IP].value, 1, machine.registers[CS].value, &machine);
@@ -102,8 +102,6 @@ int main(int argc, char *argv[]) {
         machine.registers[OP1].value = typeA == 0 ? 0 : ((int32_t)typeA << 24) | (valueA & 0x00FFFFFF);
 
         int instrLen = 1 + typeA + typeB;
-        if (params.disassembler)
-            disassembleInstruction(&machine, obtainPhysicAdr(&machine, instrLogDir), instrLen, operators[opC].name, typeA, valueA, typeB, valueB);
 
         // pasamos a la sig instruccion
         machine.registers[IP].value += instrLen;
