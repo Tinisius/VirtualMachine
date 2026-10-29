@@ -3,6 +3,7 @@
 NULL EQU "NULL"
 
 main: MOV EDX, DS
-      MOV ECX, 5
+      MOV ECX, 8
       SYS 3
-      MOV EAX, NULL
+      SYS 0
+      SYS 4

@@ -56,14 +56,11 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
             fatal("NO SE PUDO RESERVAR LA CADENA");
 
         uint16_t n = readSysString(str, v_ECX); //leo el string de teclado
-        
+
         for (int i = 0; i <= n; i++) {
-            printf("escritura del byte nro: %d \n", i);
-            printf("valor de EDX: %d \n", v_EDX);
             memWrite(v_EDX + i, 1, m, str[i]);
         };
         free(str);
-        printf("despues de escritura en mem");
         break;
     case 4: // String WRITE (lee de memoria)
         uint8_t i = 0;
