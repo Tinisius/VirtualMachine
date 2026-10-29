@@ -319,7 +319,7 @@ void RND(int32_t OPA, int32_t OPB, type_machine *m) {
 }
 
 void POP(int32_t OPA, int32_t OPB, type_machine *m) {
-    int opSize = sizeObtain(OPA);
+    int opSize = sizeObtain(OPB);
 
     uint16_t seg = (m->registers[SP].value >> 16) & 0xFFFF;
     int32_t offset = (int32_t)(m->registers[SP].value & 0xFFFF);
@@ -343,12 +343,12 @@ void POP(int32_t OPA, int32_t OPB, type_machine *m) {
     offset += 4;
     m->registers[SP].value = ((uint32_t)seg << 16) | (offset & 0xFFFF);
 
-    setOPValue(OPA, m, val);
+    setOPValue(OPB, m, val);
 }
 
 void PUSH(int32_t OPA, int32_t OPB, type_machine *m) {
-    int opSize = sizeObtain(OPA);
-    int32_t val = getOPValue(OPA, m);
+    int opSize = sizeObtain(OPB);
+    int32_t val = getOPValue(OPB, m);
     uint16_t seg = (m->registers[SP].value >> 16) & 0xFFFF;
     int32_t offset = (int32_t)(m->registers[SP].value & 0xFFFF);
     offset -= 4;
@@ -369,7 +369,7 @@ void PUSH(int32_t OPA, int32_t OPB, type_machine *m) {
 }
 
 void CALL(int32_t OPA, int32_t OPB, type_machine *m) {
-    int32_t val = getOPValue(OPA, m);
+    int32_t val = getOPValue(OPB, m);
 
     uint16_t seg = (m->registers[SP].value >> 16) & 0xFFFF;
     int32_t offset = (int32_t)(m->registers[SP].value & 0xFFFF);
