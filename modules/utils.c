@@ -59,7 +59,6 @@ int memWrite(int32_t logicAdr, int16_t size, type_machine *m, int32_t value) {
 
     for (int i = 0; i < size; i++) {
         if (inSegment(physicalAdr + i, logicAdr, m)) {
-            printf("in segment, direccion logica: %d \n", logicAdr);
             m->memory.mem_values[physicalAdr + i] = ((uint32_t)value >> ((size - i - 1) * 8)) & 0xFF;
         } else {
             fatal("FALLO DE SEGMENTO");
