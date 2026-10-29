@@ -75,12 +75,14 @@ int main(int argc, char *argv[]) {
         initMainRegs(machine.registers);
         calculateSegments(&machine, paraMainSizes, params.vmx_file, &version);
         uploadMem(&machine, params, version);
-        PUSH(argc,argc,&machine);
-        PUSH(-1,-1,&machine);
+        PUSH(argc, 0, &machine);
+        PUSH(-1, 0, &machine);
     }
 
     if (params.disassembler)
         disassemble(&machine, operators);
+
+    machine.br = 0;
 
     while (corresponds(&machine)) { // analiza si corresponde leer/seguir leyendo las instruciones
 
@@ -111,6 +113,11 @@ int main(int argc, char *argv[]) {
 
         // invocamos la operacion
         operators[opC].operation(machine.registers[OP1].value, machine.registers[OP2].value, &machine);
+
+        if (machine.br == 1 && !(opC == 0 && getOPValue(machine.registers[OP1].value, &machine) == 15)) { // BREAKPOINT SI NO ESTOY EN SYS 15
+            uint32_t op = 0x0200000F;
+            SYS(op, op, &machine);
+        }
     }
     // logMachine(machine);
 
