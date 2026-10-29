@@ -21,6 +21,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
     if ((call == 1 || call == 2) && (size < 1 || size > 4))
         fatal("TAMAÑO DE CELDA INVALIDO EN SYS");
 
+    m->br = 0;
     switch (call) {
     case 1: { // READ / LECTURA (escribe en memoria)
         for (int i = 0; i < numsAmount; i++) {
@@ -81,14 +82,24 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
         break;
     }
     case 15: {
-        char *str = malloc(2); // Reservo memoria para leer el char del usuario
-        if (str == NULL)
-            fatal("NO SE PUDO RESERVAR LA CADENA");
-
-        readSysString(str, v_ECX); // leo el string de teclado
         if (m->vmi_file != NULL)
             genVMI(*m);
-        break;
+
+        char s;
+        scanf("%c", &s);
+        switch (s) {
+        case 'g':
+            break;
+        case 'q':
+            fatal("ejecucion finalizada");
+            break;
+        case '\n':
+            m->br = 1;
+            break;
+        default:
+            fatal("caracter invalido");
+            break;
+        }
     }
     default:
         fatal("CODIGO DE SYS INVALIDO");
