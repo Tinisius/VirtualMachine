@@ -167,3 +167,37 @@ void calculateSegments(type_machine *machine, int paraMainSizes, char route[], u
         i++;
     }
 }
+
+// carga la memoria, los registros y la tabla de segmentos tal como estan en la imagen
+void readVMI(type_machine *mv, char route[]) {
+    uint8_t header[8], bytes[4];
+    FILE *arch = fopen(route, "rb");
+
+    if (arch == NULL)
+        fatal("NO SE PUDO ABRIR EL ARCHIVO");
+    if (fread(header, 1, 8, arch) != 8 || memcmp(header, "VMI26", 5) != 0 || header[5] != 1)
+        fatal("CABECERA INVALIDA: EL ARCHIVO NO ES UNA IMAGEN VMI26 VERSION VALIDA");
+
+    // bytes 6-7: tamaño de la memoria en KiB
+    mv->memory.n_mem = (((uint32_t)header[6] << 8) | header[7]) * 1024;
+    mv->memory.mem_values = calloc(mv->memory.n_mem, sizeof(*mv->memory.mem_values));
+    if (mv->memory.mem_values == NULL)
+        fatal("NO SE PUDO RESERVAR LA MEMORIA");
+
+    for (int i = 0; i < N_REG; i++) {
+        if (fread(bytes, 1, 4, arch) != 4)
+            fatal("NO SE PUDIERON LEER LOS REGISTROS");
+        mv->registers[i].value = ((uint32_t)bytes[0] << 24) | ((uint32_t)bytes[1] << 16) | ((uint32_t)bytes[2] << 8) | bytes[3];
+    }
+
+    for (int i = 0; i < N_SEG; i++) {
+        if (fread(bytes, 1, 4, arch) != 4)
+            fatal("NO SE PUDO LEER LA TABLA DE SEGMENTOS");
+        mv->segments[i] = ((uint32_t)bytes[0] << 24) | ((uint32_t)bytes[1] << 16) | ((uint32_t)bytes[2] << 8) | bytes[3];
+    }
+
+    if (fread(mv->memory.mem_values, 1, mv->memory.n_mem, arch) != mv->memory.n_mem)
+        fatal("NO SE PUDO LEER LA MEMORIA");
+
+    fclose(arch);
+}

@@ -58,6 +58,7 @@ typedef struct {
     type_memory memory;
     reg registers[N_REG];
     uint32_t segments[N_SEG]; // base (2 bytes altos) y tamaño (2 bytes bajos), sin signo
+    char *vmi_file; // NULL si no se indico imagen: los breakpoints se ignoran
 } type_machine;
 
 typedef struct {

@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
         } else if (strncmp(argv[i], "m=", 2) == 0 && argv[i][2] != '\0') {
             int m = atoi(argv[i] + 2);
             if (m > 0)
-                params.n_mem = m;
+                params.n_mem = m * 1024; // kib a byte
             else
                 fatal("Memoria Insuficiente / memoria invalida");
         } else if (strcmp(argv[i], "-p") == 0) {
@@ -47,13 +47,12 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (params.vmx_file == NULL) {
-        fatal("FALTA EL ARCHIVO .vmx. USO: vmx filename.vmx [-d]");
-    }
+    if (params.vmx_file == NULL && params.vmi_file == NULL)
+        fatal("Es necesario un archivo .vmx y/o .vmi");
 
     int paraMainSizes = 0;
 
-    if (params.n_op_params > 0) {
+    if (params.vmx_file != NULL && params.n_op_params > 0) {
         paraMainSizes += strlen(params.vmx_file) + 1;
 
         // sumamos cada parametro extra y 1 byte del \0
@@ -62,19 +61,25 @@ int main(int argc, char *argv[]) {
 
         paraMainSizes += (1 + params.n_op_params) * 4; // 4 bytes por cada texto (1 del vmx lo demas de n_op_params)
     }
-
-    machine.memory.n_mem = params.n_mem;
-    machine.memory.mem_values = calloc(machine.memory.n_mem, sizeof(*machine.memory.mem_values));
-    if (machine.memory.mem_values == NULL)
-        fatal("NO SE PUDO RESERVAR LA MEMORIA");
-
+    machine.vmi_file = params.vmi_file;
     initRegs(machine.registers);
-    initMainRegs(machine.registers);
-    calculateSegments(&machine, paraMainSizes, params.vmx_file, &version);
+
+    if (params.vmx_file == NULL)
+        readVMI(&machine, params.vmi_file);
+    else {
+        machine.memory.n_mem = params.n_mem;
+        machine.memory.mem_values = calloc(machine.memory.n_mem, sizeof(*machine.memory.mem_values));
+        if (machine.memory.mem_values == NULL)
+            fatal("NO SE PUDO RESERVAR LA MEMORIA");
+
+        initMainRegs(machine.registers);
+        calculateSegments(&machine, paraMainSizes, params.vmx_file, &version);
+        uploadMem(&machine, params, version);
+    }
+    if (params.disassembler)
+        disassemble(&machine, operators);
 
     while (corresponds(&machine)) { // analiza si corresponde leer/seguir leyendo las instruciones
-
-        int32_t instrLogDir = machine.registers[IP].value;
 
         // leemos la instruccion (con segment = CS, memRead no modifica LAR, MAR ni MBR)
         instruction = memRead(machine.registers[IP].value, 1, machine.registers[CS].value, &machine);
@@ -97,8 +102,6 @@ int main(int argc, char *argv[]) {
         machine.registers[OP1].value = typeA == 0 ? 0 : ((int32_t)typeA << 24) | (valueA & 0x00FFFFFF);
 
         int instrLen = 1 + typeA + typeB;
-        if (params.disassembler)
-            disassembleInstruction(&machine, obtainPhysicAdr(&machine, instrLogDir), instrLen, operators[opC].name, typeA, valueA, typeB, valueB);
 
         // pasamos a la sig instruccion
         machine.registers[IP].value += instrLen;
@@ -106,7 +109,7 @@ int main(int argc, char *argv[]) {
         // invocamos la operacion
         operators[opC].operation(machine.registers[OP1].value, machine.registers[OP2].value, &machine);
     }
-    logMachine(machine);
+    // logMachine(machine);
 
     free(machine.memory.mem_values);
     free(params.optional_params);
