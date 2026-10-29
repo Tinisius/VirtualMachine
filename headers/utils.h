@@ -1,9 +1,9 @@
 #include "operators.h"
 #include <constants.h>
-#include <stdint.h>
 #include <ctype.h>
-#include <string.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
 
 #ifndef UTILS_H
 #define UTILS_H
@@ -60,4 +60,5 @@ bool endsWith(char *, char *);
 
 int sizeObtain(int32_t OP);
 
+void genVMI(type_machine);
 #endif

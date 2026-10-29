@@ -423,3 +423,31 @@ int sizeObtain(int32_t OP) {
     }
     return size;
 }
+
+void genVMI(type_machine mv) {
+
+    FILE *vmi_file = fopen(mv.vmi_file, "wb");
+
+    if (vmi_file == NULL)
+        fatal("NO SE PUEDE CREAR EL ARCHIVO VMI");
+
+    uint16_t mem_kib = mv.memory.n_mem / 1024;
+    uint8_t header[8] = {'V', 'M', 'I', '2', '6', 1, (mem_kib >> 8) & 0xFF, mem_kib & 0xFF};
+    fwrite(header, 1, sizeof(header), vmi_file);
+
+    for (int i = 0; i < N_REG; i++) {
+        uint32_t value = (uint32_t)mv.registers[i].value;
+        uint8_t bytes[4] = {(value >> 24) & 0xFF, (value >> 16) & 0xFF, (value >> 8) & 0xFF, value & 0xFF};
+        fwrite(bytes, 1, 4, vmi_file);
+    }
+
+    for (int i = 0; i < N_SEG; i++) {
+        uint32_t value = mv.segments[i];
+        uint8_t bytes[4] = {(value >> 24) & 0xFF, (value >> 16) & 0xFF, (value >> 8) & 0xFF, value & 0xFF};
+        fwrite(bytes, 1, 4, vmi_file);
+    }
+
+    fwrite(mv.memory.mem_values, 1, mv.memory.n_mem, vmi_file);
+
+    fclose(vmi_file);
+}

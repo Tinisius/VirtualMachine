@@ -19,4 +19,6 @@ void uploadMem(type_machine *, type_entry_params, uint8_t);
 
 void calculateSegments(type_machine *machine, int paraMainSizes, char route[], uint8_t *);
 
+void readVMI(type_machine *, char[]);
+
 #endif
