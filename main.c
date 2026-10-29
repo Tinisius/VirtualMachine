@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
         } else if (strncmp(argv[i], "m=", 2) == 0 && argv[i][2] != '\0') {
             int m = atoi(argv[i] + 2);
             if (m > 0)
-                params.n_mem = m;
+                params.n_mem = m * 1024; // kib a byte
             else
                 fatal("Memoria Insuficiente / memoria invalida");
         } else if (strcmp(argv[i], "-p") == 0) {
@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
         fatal("Es necesario un archivo .vmx y/o .vmi");
     int paraMainSizes = 0;
 
-    if (params.n_op_params > 0) {
+    if (params.vmx_file != NULL && params.n_op_params > 0) {
         paraMainSizes += strlen(params.vmx_file) + 1;
 
         // sumamos cada parametro extra y 1 byte del \0
@@ -61,16 +61,20 @@ int main(int argc, char *argv[]) {
         paraMainSizes += (1 + params.n_op_params) * 4; // 4 bytes por cada texto (1 del vmx lo demas de n_op_params)
     }
 
-    machine.memory.n_mem = params.n_mem;
-    machine.memory.mem_values = calloc(machine.memory.n_mem, sizeof(*machine.memory.mem_values));
-    if (machine.memory.mem_values == NULL)
-        fatal("NO SE PUDO RESERVAR LA MEMORIA");
-
     initRegs(machine.registers);
-    initMainRegs(machine.registers);
 
-    calculateSegments(&machine, paraMainSizes, params.vmx_file, &version);
-    uploadMem(&machine, params, version);
+    if (params.vmx_file == NULL)
+        readVMI(&machine, params.vmi_file);
+    else {
+        machine.memory.n_mem = params.n_mem;
+        machine.memory.mem_values = calloc(machine.memory.n_mem, sizeof(*machine.memory.mem_values));
+        if (machine.memory.mem_values == NULL)
+            fatal("NO SE PUDO RESERVAR LA MEMORIA");
+
+        initMainRegs(machine.registers);
+        calculateSegments(&machine, paraMainSizes, params.vmx_file, &version);
+        uploadMem(&machine, params, version);
+    }
     genVMI(machine);
     while (corresponds(&machine)) { // analiza si corresponde leer/seguir
                                     // leyendo las instruciones
@@ -107,7 +111,7 @@ int main(int argc, char *argv[]) {
         // invocamos la operacion
         operators[opC].operation(machine.registers[OP1].value, machine.registers[OP2].value, &machine);
     }
-    logMachine(machine);
+    // logMachine(machine);
 
     free(machine.memory.mem_values);
     free(params.optional_params);

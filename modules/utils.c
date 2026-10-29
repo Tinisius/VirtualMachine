@@ -409,7 +409,7 @@ int sizeObtain(int32_t OP) {
 
 void genVMI(type_machine mv) {
 
-    FILE *vmi_file = fopen("test.vmi", "wb");
+    FILE *vmi_file = fopen(mv.vmi_file, "wb");
 
     if (vmi_file == NULL)
         fatal("NO SE PUEDE CREAR EL ARCHIVO VMI");

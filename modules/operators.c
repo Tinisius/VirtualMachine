@@ -41,7 +41,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
             printFormat(value, v_EAX, size);
             printf("\n");
         }
-    } else if (call == 15)
+    } else if (call == 15 && m->vmi_file != NULL)
         genVMI(*m);
 }
 
