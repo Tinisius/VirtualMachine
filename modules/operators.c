@@ -21,8 +21,9 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
     if ((call == 1 || call == 2) && (size < 1 || size > 4))
         fatal("TAMAÑO DE CELDA INVALIDO EN SYS");
 
-    if (call == 1) {                           // READ / LECTURA (escribe en memoria)
-        for (int i = 0; i < numsAmount; i++) { // realiza N lecturas
+    switch (call) {
+    case 1: // READ / LECTURA (escribe en memoria)
+        for (int i = 0; i < numsAmount; i++) {
             int32_t logicAdr = v_EDX + i * size;
             printf("[%04X]: ", obtainPhysicAdr(m, logicAdr));
             fflush(stdout); // el prompt no termina en \n: se fuerza antes de leer
@@ -33,7 +34,8 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
 
             memWrite(logicAdr, size, m, value); // escribe en memoria y valida
         }
-    } else if (call == 2) { // WRITE / ESCRITURA (lee de memoria)
+        break;
+    case 2: // WRITE / ESCRITURA (lee de memoria)
         for (int i = 0; i < numsAmount; i++) {
             int32_t logicAdr = v_EDX + i * size;
             printf("[%04X]: ", obtainPhysicAdr(m, logicAdr));
@@ -41,8 +43,36 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
             printFormat(value, v_EAX, size);
             printf("\n");
         }
-    } else if (call == 15 && m->vmi_file != NULL)
-        genVMI(*m);
+        break;
+    case 3: // String READ (escribe en memoria)
+        printf("[%04X]: ", obtainPhysicAdr(m, v_EDX));
+        fflush(stdout); // limpia el buffer
+        char *str;      // el string a escribir en memoria
+        uint16_t n = readSysString(str, v_ECX);
+        for (int i = 0; i <= n; i++) {
+            memWrite(v_EDX + i, 1, m, str[i]);
+        };
+        break;
+    case 4: // String WRITE (lee de memoria)
+        uint8_t i = 0;
+        char c;
+        do {
+            c = memRead(v_EDX + i, 1, m->registers[DS].value, m);
+            printf("%c", c);
+            i++;
+        } while (c != 0);
+        printf("\n");
+        break;
+    case 0: // Clear Screen
+        system("cls");
+        break;
+    case 15:
+        if (m->vmi_file != NULL)
+            genVMI(*m);
+        break;
+    default:
+        fatal("CODIGO DE SYS INVALIDO");
+    }
 }
 
 void JMP(int32_t OPA, int32_t OPB, type_machine *m) {
