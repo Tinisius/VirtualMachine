@@ -22,7 +22,7 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
         fatal("TAMAÑO DE CELDA INVALIDO EN SYS");
 
     switch (call) {
-    case 1: // READ / LECTURA (escribe en memoria)
+    case 1: { // READ / LECTURA (escribe en memoria)
         for (int i = 0; i < numsAmount; i++) {
             int32_t logicAdr = v_EDX + i * size;
             printf("[%04X]: ", obtainPhysicAdr(m, logicAdr));
@@ -35,7 +35,8 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
             memWrite(logicAdr, size, m, value); // escribe en memoria y valida
         }
         break;
-    case 2: // WRITE / ESCRITURA (lee de memoria)
+    }
+    case 2: { // WRITE / ESCRITURA (lee de memoria)
         for (int i = 0; i < numsAmount; i++) {
             int32_t logicAdr = v_EDX + i * size;
             printf("[%04X]: ", obtainPhysicAdr(m, logicAdr));
@@ -44,25 +45,27 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
             printf("\n");
         }
         break;
-    case 3: // String READ (escribe en memoria)
+    }
+    case 3: { // String READ (escribe en memoria)
         printf("[%04X]: ", obtainPhysicAdr(m, v_EDX));
         fflush(stdout); // limpia el buffer
 
-        if (v_ECX <= 0 || v_ECX > UINT16_MAX)   //valida valor de ECX
+        if (v_ECX <= 0 || v_ECX > UINT16_MAX) // valida valor de ECX
             fatal("TAMAÑO DE CADENA INVALIDO EN SYS");
 
-        char *str = malloc((size_t)v_ECX + 1);  //Reservo memoria para ller el string
+        char *str = malloc((size_t)v_ECX + 1); // Reservo memoria para ller el string
         if (str == NULL)
             fatal("NO SE PUDO RESERVAR LA CADENA");
 
-        uint16_t n = readSysString(str, v_ECX); //leo el string de teclado
+        uint16_t n = readSysString(str, v_ECX); // leo el string de teclado
 
         for (int i = 0; i <= n; i++) {
             memWrite(v_EDX + i, 1, m, str[i]);
         };
         free(str);
         break;
-    case 4: // String WRITE (lee de memoria)
+    }
+    case 4: { // String WRITE (lee de memoria)
         uint8_t i = 0;
         char c;
         do {
@@ -72,13 +75,21 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
         } while (c != 0);
         printf("\n");
         break;
-    case 0: // Clear Screen
+    }
+    case 0: { // Clear Screen
         system("cls");
         break;
-    case 15:
+    }
+    case 15: {
+        char *str = malloc(2); // Reservo memoria para leer el char del usuario
+        if (str == NULL)
+            fatal("NO SE PUDO RESERVAR LA CADENA");
+
+        readSysString(str, v_ECX); // leo el string de teclado
         if (m->vmi_file != NULL)
             genVMI(*m);
         break;
+    }
     default:
         fatal("CODIGO DE SYS INVALIDO");
     }
