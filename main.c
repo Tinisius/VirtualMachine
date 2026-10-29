@@ -75,7 +75,10 @@ int main(int argc, char *argv[]) {
         initMainRegs(machine.registers);
         calculateSegments(&machine, paraMainSizes, params.vmx_file, &version);
         uploadMem(&machine, params, version);
+        PUSH(argc,0,&machine);
+        PUSH(-1,0,&machine);
     }
+
     if (params.disassembler)
         disassemble(&machine, operators);
 

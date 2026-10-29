@@ -88,6 +88,8 @@ void uploadMem(type_machine *mv, type_entry_params params, uint8_t version) {
             strings_size += strlen(params.optional_params[i]) + 1;
 
         int32_t argv_adr = ps + strings_size;
+        PUSH(argv_adr,0,mv);
+
         uint32_t offset = 0;
         for (int k = 0; k <= params.n_op_params; k++) {
             char *str = (k == 0) ? params.vmx_file : params.optional_params[k - 1];
@@ -98,7 +100,7 @@ void uploadMem(type_machine *mv, type_entry_params params, uint8_t version) {
                 memWrite(ps + offset + j, 1, mv, str[j]); // el j == len escribe el \0
             offset += len + 1;
         }
-    }
+    } 
 
     uint32_t cs = mv->segments[highest(mv->registers[CS].value)];
 
