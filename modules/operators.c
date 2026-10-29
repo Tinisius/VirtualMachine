@@ -47,11 +47,23 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
     case 3: // String READ (escribe en memoria)
         printf("[%04X]: ", obtainPhysicAdr(m, v_EDX));
         fflush(stdout); // limpia el buffer
-        char *str;      // el string a escribir en memoria
-        uint16_t n = readSysString(str, v_ECX);
+
+        if (v_ECX <= 0 || v_ECX > UINT16_MAX)   //valida valor de ECX
+            fatal("TAMAÑO DE CADENA INVALIDO EN SYS");
+
+        char *str = malloc((size_t)v_ECX + 1);  //Reservo memoria para ller el string
+        if (str == NULL)
+            fatal("NO SE PUDO RESERVAR LA CADENA");
+
+        uint16_t n = readSysString(str, v_ECX); //leo el string de teclado
+        
         for (int i = 0; i <= n; i++) {
+            printf("escritura del byte nro: %d \n", i);
+            printf("valor de EDX: %d \n", v_EDX);
             memWrite(v_EDX + i, 1, m, str[i]);
         };
+        free(str);
+        printf("despues de escritura en mem");
         break;
     case 4: // String WRITE (lee de memoria)
         uint8_t i = 0;
