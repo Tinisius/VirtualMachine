@@ -61,4 +61,5 @@ bool endsWith(char *, char *);
 int sizeObtain(int32_t OP);
 
 void genVMI(type_machine);
+uint16_t readSysString(char *, uint16_t);
 #endif
