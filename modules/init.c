@@ -78,12 +78,14 @@ void uploadMem(type_machine *mv, type_entry_params params, uint8_t version) {
 
     fseek(arch, offset, SEEK_SET);
 
+    // guarda parametros en el PS (solo si hay parametros opcionales)
     if (params.n_op_params > 0) {
         int32_t ps = mv->registers[PS].value;
 
-        uint32_t strings_size = 0;
-        for (int i = 0; i <= params.n_op_params; i++)
-            strings_size += strlen(i == 0 ? params.vmx_file : params.optional_params[i - 1]) + 1;
+        // calcula el tamaño a ocupar en el PS
+        uint32_t strings_size = strlen(params.vmx_file) + 1;
+        for (int i = 0; i < params.n_op_params; i++)
+            strings_size += strlen(params.optional_params[i]) + 1;
 
         int32_t argv_adr = ps + strings_size;
         uint32_t offset = 0;
@@ -92,8 +94,8 @@ void uploadMem(type_machine *mv, type_entry_params params, uint8_t version) {
             size_t len = strlen(str);
 
             memWrite(argv_adr + 4 * k, 4, mv, ps + offset);
-            for (size_t j = 0; j <= len; j++)
-                memWrite(ps + offset + j, 1, mv, str[j]);
+            for (size_t j = 0; j <= len; j++)             // escribe el parametro en el PS
+                memWrite(ps + offset + j, 1, mv, str[j]); // el j == len escribe el \0
             offset += len + 1;
         }
     }

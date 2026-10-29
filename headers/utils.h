@@ -1,9 +1,9 @@
 #include "operators.h"
 #include <constants.h>
-#include <stdint.h>
 #include <ctype.h>
-#include <string.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
 
 #ifndef UTILS_H
 #define UTILS_H
@@ -20,15 +20,11 @@ uint16_t obtainPhysicAdr(type_machine *, int32_t);
 
 int inSegment(int32_t physicAdr, int32_t logicAdr, type_machine *);
 
-int inMem(int32_t physicAdr);
-
-// actualiza N, Z, C y V del registro CC; result viene sin truncar y cc_mode
-// indica de que operacion salio (0 logica, 1 suma, 2 resta, 3 resultado ancho)
 void uploadcc(int32_t valA, int32_t valB, int64_t result, type_machine *m, int cc_mode);
 
-int memWrite(int32_t, int16_t, type_machine *, int32_t);
+int memWrite(int32_t logicAdr, int16_t size, type_machine *m, int32_t value);
 
-uint32_t memRead(int32_t, int16_t, int32_t, type_machine *);
+uint32_t memRead(int32_t logicAdr, int16_t size, int32_t segment, type_machine *m);
 
 void printBin(int32_t, int16_t);
 
