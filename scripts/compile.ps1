@@ -8,5 +8,5 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # ejecuta el programa compilado
-& .\versions\MV.exe img.vmi
+& .\versions\MV.exe vmt/sample_4.vmx -d
 exit $LASTEXITCODE

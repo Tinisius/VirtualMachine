@@ -28,7 +28,7 @@ uint16_t obtainPhysicAdr(type_machine *m, int32_t logicAdr) {
     uint16_t segmIndex = highest(logicAdr);
     //printf("obtainPhysicAdr: logicAdr=%08X, segmIndex=%d\n", logicAdr, segmIndex);
     if (segmIndex >= N_SEG)
-        fatal("sFALLO DE SEGMENTO");
+        fatal("FALLO DE SEGMENTO");
 
     uint16_t offset = lowest(logicAdr);
     uint16_t base = highest(m->segments[segmIndex]);
@@ -46,7 +46,7 @@ int inSegment(int32_t physicAdr, int32_t logicAdr, type_machine *m) {
     uint16_t size = lowest(m->segments[segmIndex]);
 
     if (physicAdr < base || physicAdr >= base + size || physicAdr >= m->memory.n_mem)
-        fatal("wFALLO DE SEGMENTO");
+        fatal("FALLO DE SEGMENTO");
 
     return 1;
 }

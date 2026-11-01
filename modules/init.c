@@ -122,15 +122,20 @@ void uploadMem(type_machine *mv, type_entry_params params, uint8_t version) {
 
 void calculateSegments(type_machine *machine, int paraMainSizes, char route[], uint8_t *version) {
     int8_t res = 0;
-    uint16_t cs_size, ds_size, es_size, ss_size, constSeg, entry_point;
+    uint16_t cs_size = 0, ds_size = 0, es_size = 0, ss_size = 0, constSeg = 0, entry_point = 0;
 
     readHeader(route, &cs_size, &res, &ds_size, &es_size, &ss_size, &constSeg, &entry_point, version);
     if (!res)
         fatal("CABECERA INVALIDA: EL ARCHIVO NO ES UN PROGRAMA VMX26 VERSION VALIDA");
     if (cs_size == 0)
         fatal("CODE SEGMENT VACIO");
-    if (entry_point >= cs_size)
-        fatal("ENTRY POINT FUERA DEL CODE SEGMENT");
+    if (*version == 1){
+        entry_point = 0;
+        ds_size = machine->memory.n_mem - cs_size;
+    }
+    else
+        if (entry_point >= cs_size)
+            fatal("ENTRY POINT FUERA DEL CODE SEGMENT");
 
     // orden fisico = orden en la tabla
     const int regOf[6]     = {PS, KS, CS, DS, ES, SS};

@@ -79,10 +79,12 @@ int main(int argc, char *argv[]) {
         uint32_t argvPtr = 0xFFFFFFFF;                 // sin -p
         if (params.n_op_params > 0)
             argvPtr = (uint32_t)(paraMainSizes - (1 + params.n_op_params) * 4);
+        if (version == 2){
+            pushRaw(&machine, argvPtr); // direccion del primer parametro (vmx)
+            pushRaw(&machine, params.n_op_params);          // 0 si no hay -p
+            pushRaw(&machine, 0xFFFFFFFF);
+        }
 
-        pushRaw(&machine, argvPtr); // direccion del primer parametro (vmx)
-        pushRaw(&machine, params.n_op_params);          // 0 si no hay -p
-        pushRaw(&machine, 0xFFFFFFFF);
         
     }
 
