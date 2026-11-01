@@ -1,0 +1,24 @@
+TESTS MAQUINA VIRTUAL - PARTE II (MV2 2026)
+===========================================
+
+1) Copiar vmt y vmx (o vmt.exe / vmx.exe) a esta carpeta.
+2) Correr:   python run_tests.py
+   (o:       python run_tests.py --vmx ruta/vmx.exe --vmt ruta/vmt.exe)
+   Solo algunos:  python run_tests.py --solo T02 T07
+3) Ver el resumen TOTAL: x/y OK. La salida completa de cada corrida queda
+   en resultados/.
+
+Cada .asm se AUTOVERIFICA: imprime "<chequeo> -> OK" o "-> FALLA" y al final
+"RESULTADO: TODO OK". Se pueden correr a mano con vmx sin el script.
+
+SUPUESTOS DE SINTAXIS (ajustar si su vmt usa otra):
+ - Directivas  \\DATA n  \\EXTRA n  \\STACK n  al principio.
+ - Strings constantes:  NOMBRE EQU "texto"  -> puntero = KS + NOMBRE
+ - Entry point: rotulo _start
+ - Inmediatos en decimal (los valores hex estan en los comentarios).
+ - vmt se invoca:  vmt archivo.asm archivo.vmx v=2   (cambiar con --vmt-args)
+ - T06 asume argc = 4 (nombre del .vmx + 3 parametros), como la figura del
+   enunciado. Si la catedra define argc = 3, cambiar el valor esperado.
+ - T12 usa SYS 2 con la convencion de la Parte I (EAX=formato, EDX=dir,
+   CL=cantidad, CH=tamanio). Ajustar si su Parte I es distinta.
+ - SYS 0 (limpiar pantalla) hay que verificarlo a ojo.
