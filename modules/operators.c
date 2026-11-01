@@ -67,40 +67,44 @@ void SYS(int32_t OPA, int32_t OPB, type_machine *m) {
         break;
     }
     case 4: { // String WRITE (lee de memoria)
-        uint8_t i = 0;
-        char c;
-        do {
-            c = memRead(v_EDX + i, 1, m->registers[DS].value, m);
-            printf("%c", c);
-            i++;
-        } while (c != 0);
-        printf("\n");
-        break;
+    uint32_t i = 0;
+    char c;
+    while ((c = memRead(v_EDX + i, 1, m->registers[DS].value, m)) != 0) {
+        putchar(c);
+        i++;
+    }
+    fflush(stdout);
+    break;
     }
     case 0: { // Clear Screen
         system("cls");
         break;
     }
-    case 15: {
-        if (m->vmi_file != NULL)
-            genVMI(*m);
+    case 15: { // BREAKPOINT
+    if (m->vmi_file == NULL)
+        break;                      // sin .vmi se ignora no lee nada
 
-        char s;
-        scanf("%c", &s);
-        switch (s) {
-        case 'g':
-            break;
-        case 'q':
-            fatal("ejecucion finalizada");
-            break;
-        case '\n':
-            m->br = 1;
-            break;
-        default:
-            fatal("caracter invalido");
-            break;
-        }
+    genVMI(*m);
+
+    char line[64];
+    if (fgets(line, sizeof line, stdin) == NULL)
+        fatal("ENTRADA INVALIDA");
+
+    switch (line[0]) {
+    case 'g':
+        break;
+    case 'q':
+        fatal("ejecucion finalizada");
+        break;
+    case '\n':
+        m->br = 1;
+        break;
+    default:
+        fatal("caracter invalido");
+        break;
     }
+    break;
+}
     default:
         fatal("CODIGO DE SYS INVALIDO");
     }
@@ -353,7 +357,7 @@ void PUSH(int32_t OPA, int32_t OPB, type_machine *m) {
     int32_t offset = (int32_t)(m->registers[SP].value & 0xFFFF);
     offset -= 4;
     if (offset < 0)
-        fatal("STACK OVERFLOW: Se ha superado el límite del segmento de pila");
+        fatal("STACK OVERFLOW: Se ha superado el limite del segmento de pila");
 
     m->registers[SP].value = ((uint32_t)seg << 16) | (offset & 0xFFFF);
 
@@ -376,7 +380,7 @@ void CALL(int32_t OPA, int32_t OPB, type_machine *m) {
 
     offset -= 4;
     if (offset < 0)
-        fatal("STACK OVERFLOW: Se ha superado el límite del segmento de pila");
+        fatal("STACK OVERFLOW: Se ha superado el limite del segmento de pila");
 
     m->registers[SP].value = ((uint32_t)seg << 16) | (offset & 0xFFFF);
 
@@ -413,4 +417,20 @@ void RET(int32_t OPA, int32_t OPB, type_machine *m) {
     m->registers[IP].value = val;
 }
 
+void pushRaw(type_machine *m, uint32_t val) {
+    uint16_t seg = (m->registers[SP].value >> 16) & 0xFFFF;
+    int32_t offset = (int32_t)(m->registers[SP].value & 0xFFFF);
+
+    offset -= 4;
+    if (offset < 0)
+        fatal("STACK OVERFLOW: Se ha superado el limite del segmento de pila");
+
+    m->registers[SP].value = ((uint32_t)seg << 16) | (offset & 0xFFFF);
+
+    uint32_t dirPhy = highest(m->segments[seg]) + (uint32_t)offset;
+    m->memory.mem_values[dirPhy]     = (uint8_t)(val >> 24);
+    m->memory.mem_values[dirPhy + 1] = (uint8_t)(val >> 16);
+    m->memory.mem_values[dirPhy + 2] = (uint8_t)(val >> 8);
+    m->memory.mem_values[dirPhy + 3] = (uint8_t)(val & 0xFF);
+}
 // void TRASH(int32_t OPA, int32_t OPB, type_machine *m) { fatal("INSTRUCCION INVALIDA"); }

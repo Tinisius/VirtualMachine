@@ -55,5 +55,6 @@ void LDL(int32_t, int32_t, type_machine *);
 void LDH(int32_t, int32_t, type_machine *);
 void RND(int32_t, int32_t, type_machine *);
 void TRASH(int32_t, int32_t, type_machine *);
+void pushRaw(type_machine *m, uint32_t val) ;
 
 #endif

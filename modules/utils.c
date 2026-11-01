@@ -26,8 +26,9 @@ int corresponds(type_machine *m) {
 
 uint16_t obtainPhysicAdr(type_machine *m, int32_t logicAdr) {
     uint16_t segmIndex = highest(logicAdr);
+    //printf("obtainPhysicAdr: logicAdr=%08X, segmIndex=%d\n", logicAdr, segmIndex);
     if (segmIndex >= N_SEG)
-        fatal("FALLO DE SEGMENTO");
+        fatal("sFALLO DE SEGMENTO");
 
     uint16_t offset = lowest(logicAdr);
     uint16_t base = highest(m->segments[segmIndex]);
@@ -39,13 +40,13 @@ uint16_t obtainPhysicAdr(type_machine *m, int32_t logicAdr) {
 int inSegment(int32_t physicAdr, int32_t logicAdr, type_machine *m) {
     uint16_t segmIndex = highest(logicAdr);
     if (segmIndex >= N_SEG || m->segments[segmIndex] == 0xFFFFFFFF)
-        fatal("FALLO DE SEGMENTO");
+        fatal("eFALLO DE SEGMENTO");
 
     uint16_t base = highest(m->segments[segmIndex]);
     uint16_t size = lowest(m->segments[segmIndex]);
 
     if (physicAdr < base || physicAdr >= base + size || physicAdr >= m->memory.n_mem)
-        fatal("FALLO DE SEGMENTO");
+        fatal("wFALLO DE SEGMENTO");
 
     return 1;
 }
@@ -61,7 +62,7 @@ int memWrite(int32_t logicAdr, int16_t size, type_machine *m, int32_t value) {
         if (inSegment(physicalAdr + i, logicAdr, m)) {
             m->memory.mem_values[physicalAdr + i] = ((uint32_t)value >> ((size - i - 1) * 8)) & 0xFF;
         } else {
-            fatal("FALLO DE SEGMENTO");
+            fatal("zFALLO DE SEGMENTO");
         }
     }
     return 0;
@@ -113,9 +114,9 @@ int32_t getOPValue(uint32_t op, type_machine *m) {
 
     if (type_op != 2) {
         if (type_op == 3) { // operando de memoria
-            value = m->registers[MBR].value;
+            //value = m->registers[MBR].value;
             uint8_t mem_size = (op >> 5) & 0x07; // modificador de tamaño
-            memRead(getOPLogicAdress(op, m), mem_size, m->registers[DS].value, m);
+            value=memRead(getOPLogicAdress(op, m), mem_size, m->registers[DS].value, m);
 
         } else { // operando de registro
             uint8_t reg = op & 0x1F;

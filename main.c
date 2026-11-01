@@ -75,8 +75,15 @@ int main(int argc, char *argv[]) {
         initMainRegs(machine.registers);
         calculateSegments(&machine, paraMainSizes, params.vmx_file, &version);
         uploadMem(&machine, params, version);
-        PUSH(argc, 0, &machine);
-        PUSH(-1, 0, &machine);
+
+        uint32_t argvPtr = 0xFFFFFFFF;                 // sin -p
+        if (params.n_op_params > 0)
+            argvPtr = (uint32_t)(paraMainSizes - (1 + params.n_op_params) * 4);
+
+        pushRaw(&machine, argvPtr); // direccion del primer parametro (vmx)
+        pushRaw(&machine, params.n_op_params);          // 0 si no hay -p
+        pushRaw(&machine, 0xFFFFFFFF);
+        
     }
 
     if (params.disassembler)
