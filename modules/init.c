@@ -127,49 +127,52 @@ void calculateSegments(type_machine *machine, int paraMainSizes, char route[], u
     readHeader(route, &cs_size, &res, &ds_size, &es_size, &ss_size, &constSeg, &entry_point, version);
     if (!res)
         fatal("CABECERA INVALIDA: EL ARCHIVO NO ES UN PROGRAMA VMX26 VERSION VALIDA");
-    if (cs_size > machine->memory.n_mem)
-        fatal("espacio insuficiente");
+    if (cs_size == 0)
+        fatal("CODE SEGMENT VACIO");
+    if (entry_point >= cs_size)
+        fatal("ENTRY POINT FUERA DEL CODE SEGMENT");
+
+    // orden fisico = orden en la tabla
+    const int regOf[6]     = {PS, KS, CS, DS, ES, SS};
+    const uint32_t size[6] = {(uint32_t)paraMainSizes, constSeg, cs_size, ds_size, es_size, ss_size};
+
+    // 1) la suma de TODOS los segmentos tiene que entrar en la memoria (en 32 bits, sin desborde)
+    uint32_t total = 0;
+    for (int k = 0; k < 6; k++) {
+        if (size[k] > 0xFFFF)
+            fatal("SEGMENTO DEMASIADO GRANDE (MAXIMO 65535)");
+        total += size[k];
+    }
+    if (total > (uint32_t)machine->memory.n_mem)
+        fatal("MEMORIA INSUFICIENTE: LOS SEGMENTOS NO ENTRAN EN LA MEMORIA PRINCIPAL");
 
     initTableSeg(machine->segments);
 
-    int i = 0;
-    if (paraMainSizes != 0) {
-        addSegment(machine->segments, i, paraMainSizes);
-        initRegSegment(i, PS, machine->registers);
-        i++;
-    }
-    if (constSeg != 0) {
-        addSegment(machine->segments, i, constSeg);
-        initRegSegment(i, KS, machine->registers);
-        i++;
-    }
-    // se añade el cs
-    int physbasecs = (i == 0) ? 0 : highest(machine->segments[i - 1]) + lowest(machine->segments[i - 1]);
-    addSegment(machine->segments, i, cs_size);
-    initRegSegment(i, CS, machine->registers);
-    if (entry_point >= cs_size)
-        fatal("ENTRY POINT FUERA DEL CODE SEGMENT");
-    // la ejecucion arranca en el entry point, no necesariamente en el offset 0
-    machine->registers[IP].value = machine->registers[CS].value | entry_point;
-    i++;
-    // se añade el ds
-    addSegment(machine->segments, i, ds_size); // data segment
-    initRegSegment(i, DS, machine->registers);
-    i++;
+    // 2) todos los registros de segmento arrancan ausentes (-1)
+    for (int k = 0; k < 6; k++)
+        machine->registers[regOf[k]].value = 0xFFFFFFFF;
 
-    if (es_size != 0) {
-        addSegment(machine->segments, i, es_size);
-        initRegSegment(i, ES, machine->registers);
-        i++;
-    }
-    if (ss_size != 0) {
-        addSegment(machine->segments, i, ss_size);
-        initRegSegment(i, SS, machine->registers);
-        machine->registers[SP].value = ((uint32_t)i << 16) | (ss_size & 0xFFFF);
+    // 3) entradas solo para los segmentos con tamaño > 0
+    uint32_t base = 0;
+    int i = 0;
+    for (int k = 0; k < 6; k++) {
+        if (size[k] == 0)
+            continue;
+        if (base > 0xFFFF)
+            fatal("BASE DE SEGMENTO NO REPRESENTABLE EN 16 BITS");
+
+        addSegment(machine->segments, i, size[k]);
+        initRegSegment(i, regOf[k], machine->registers);
+
+        if (regOf[k] == CS)   // la ejecucion arranca en el entry point
+            machine->registers[IP].value = machine->registers[CS].value | entry_point;
+        if (regOf[k] == SS)   // pila vacia: SP = SS + tamaño (justo afuera del segmento)
+            machine->registers[SP].value = ((uint32_t)i << 16) | (ss_size & 0xFFFF);
+
+        base += size[k];
         i++;
     }
 }
-
 // carga la memoria, los registros y la tabla de segmentos tal como estan en la imagen
 void readVMI(type_machine *mv, char route[]) {
     uint8_t header[8], bytes[4];
