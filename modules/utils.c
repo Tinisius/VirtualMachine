@@ -154,20 +154,30 @@ uint32_t getOPLogicAdress(uint32_t op, type_machine *m) {
 void setOPValue(uint32_t op, type_machine *m, int32_t newValue) {
     int8_t typeA = getOpType(op);
 
-    if (typeA == 1) {                        // operando de registro
+    if (typeA == 1) { // op de registro
         uint8_t reg_size = (op >> 5) & 0x03; // modificador de tamaño
+        uint32_t current_val = m->registers[op & 0x1F].value; // leemos el valor actual
+
         switch (reg_size) {
-        case 1: // AL (4to byte)
-            newValue = newValue & 0xFF;
+        case 1: // AL 4to byte / menos significativo
+            // Conserva los 24 bits altos de current_val y pisa los 8 bajos con newValue
+            newValue = (current_val & 0xFFFFFF00) | (newValue & 0xFF);
             break;
-        case 2: // AH (3er byte)
-            newValue = (newValue >> 8) & 0xFF;
+        case 2: // AH 3er byte
+            // Conserva los extremos y pisa el byte 3 con newValue
+            newValue = (current_val & 0xFFFF00FF) | ((newValue & 0xFF) << 8);
             break;
-        case 3: // AX (3er y 4to byte)
-            newValue = newValue & 0xFFFF;
+        case 3: // AX 3er y 4to byte / 16 bits menos significativos
+            // conserva los 16 bits altos de current_val y pisa los 16 bajos con newValue
+            newValue = (current_val & 0xFFFF0000) | (newValue & 0xFFFF);
+            break;
+        case 0: // EAX Registro completo
+            // no se enmascara nada, sobrescribe los 4 bytes
             break;
         }
+        
         m->registers[op & 0x1F].value = newValue;
+        
     } else {
         if (typeA == 3) { // operando de memoria
             uint32_t logicAdr = getOPLogicAdress(op, m);
@@ -175,8 +185,9 @@ void setOPValue(uint32_t op, type_machine *m, int32_t newValue) {
             m->registers[LAR].value = logicAdr;
             uint8_t mem_size = (op >> 5) & 0x07; // modificador de tamaño
             memWrite(logicAdr, mem_size, m, newValue);
-        } else
-            fatal("NO   SE PUEDE ESCRIBIR EN UN OPERANDO INMEDIATO");
+        } else {
+            fatal("NO SE PUEDE ESCRIBIR EN UN OPERANDO INMEDIATO");
+        }
     }
 }
 
