@@ -8,5 +8,5 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # ejecuta el programa compilado
-& .\versions\MV.exe vmt/sample_4.vmx -d
+& .\versions\MV.exe vmt/tests_mv2/T09b_underflow_ret.vmx -d
 exit $LASTEXITCODE
