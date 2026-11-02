@@ -76,16 +76,14 @@ int main(int argc, char *argv[]) {
         calculateSegments(&machine, paraMainSizes, params.vmx_file, &version);
         uploadMem(&machine, params, version);
 
-        uint32_t argvPtr = 0xFFFFFFFF;                 // sin -p
+        uint32_t argvPtr = 0xFFFFFFFF; // sin -p
         if (params.n_op_params > 0)
             argvPtr = (uint32_t)(paraMainSizes - (1 + params.n_op_params) * 4);
-        if (version == 2){
-            pushRaw(&machine, argvPtr); // direccion del primer parametro (vmx)
-            pushRaw(&machine, params.n_op_params);          // 0 si no hay -p
+        if (version == 2) {
+            pushRaw(&machine, argvPtr);                                             // direccion del primer parametro (vmx)
+            pushRaw(&machine, params.n_op_params > 0 ? params.n_op_params + 1 : 0); // 0 si no hay -p
             pushRaw(&machine, 0xFFFFFFFF);
         }
-
-        
     }
 
     if (params.disassembler)
