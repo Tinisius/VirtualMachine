@@ -274,8 +274,11 @@ void SHR(int32_t OPA, int32_t OPB, type_machine *m) {
 
     // desplazamiento logico: se corre el valor sin signo para que entren ceros por la izquierda
     // correr 32 bits o mas vacia la palabra
+    // un subregistro viene con el signo extendido: se recorta a su tamaño para que no entren unos
+    int size = sizeObtain(OPA);
+    uint32_t bits = size == 4 ? (uint32_t)valA : (uint32_t)valA & ((1u << (size * 8)) - 1);
     int32_t value = 0;
-    value = (valB > 0) ? (int32_t)((uint32_t)valA >> valB) : valA;
+    value = (valB > 0) ? (int32_t)(bits >> valB) : valA;
 
     setOPValue(OPA, m, value);
     uploadcc(valA, valB, value, m, 3);

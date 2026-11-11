@@ -122,16 +122,17 @@ int32_t getOPValue(uint32_t op, type_machine *m) {
             uint8_t reg = op & 0x1F;
             value = m->registers[reg].value;
 
+            // el subregistro se lee con el signo extendido a 32 bits
             uint8_t reg_size = (op >> 5) & 0x03; // modificador de tamaño
             switch (reg_size) {
             case 1: // AL (4to byte)
-                value = value & 0xFF;
+                value = (int8_t)value;
                 break;
             case 2: // AH (3er byte)
-                value = (value >> 8) & 0xFF;
+                value = (int8_t)(value >> 8);
                 break;
             case 3: // AX (3er y 4to byte)
-                value = value & 0xFFFF;
+                value = (int16_t)value;
                 break;
             }
         }
